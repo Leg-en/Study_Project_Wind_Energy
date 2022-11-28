@@ -1,0 +1,17 @@
+{
+  "turbines": [
+    {
+      "type": "",
+      "price": {
+        "price_building": 0,
+        "price_per_year": 0
+      },
+      "rotor diameter": 0,
+      "nominal_power": 0,
+      "life_expectancy": 0,
+      "Wind_class": "",
+      "height": 0,
+      "fundament_size": 0
+    }
+  ]
+}

@@ -1,7 +1,6 @@
 import json
 import pickle
 from itertools import combinations
-
 import numpy as np
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.core.callback import Callback
@@ -29,12 +28,6 @@ rfile = 'potentialareas_400m_forest.shp'
 # Die distanzmatrix enthält jetzt alle relevanten distanz informationen
 
 class WindEnergySiteSelectionProblem(ElementwiseProblem):
-    import numpy as np
-
-    def angle_between(self, p1, p2):
-        ang1 = np.arctan2(*p1[::-1])
-        ang2 = np.arctan2(*p2[::-1])
-        return np.rad2deg((ang1 - ang2) % (2 * np.pi))
 
     def __init__(self, **kwargs):
         # super().__init__(n_var=gdf_optimization.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0, xu=1.0)
@@ -52,8 +45,6 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             # Todo: Überprüfen ob die Winkelberechnung auch nur etwas sinn macht.
             coor_1 = (points[combination[0] % len(points)].x, points[combination[0] % len(points)].y)
             coor_2 = (points[combination[1] % len(points)].x, points[combination[1] % len(points)].y)
-            angle = (360 - self.angle_between(coor_1, coor_2)) % 360
-            angle_corr = (angle + Wind_deg) % 360
             print()
 
 

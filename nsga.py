@@ -52,7 +52,7 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             # Todo: Überprüfen ob die Winkelberechnung auch nur etwas sinn macht.
             coor_1 = (points[combination[0] % len(points)].x, points[combination[0] % len(points)].y)
             coor_2 = (points[combination[1] % len(points)].x, points[combination[1] % len(points)].y)
-            angle = self.angle_between(coor_2, coor_2)
+            angle = (360 - self.angle_between(coor_1, coor_2)) % 360
             angle_corr = (angle + Wind_deg) % 360
             print()
 

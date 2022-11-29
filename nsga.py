@@ -12,7 +12,7 @@ from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
 
-Wind_Vektor = (0, 0)
+Wind_deg = 270
 
 points_path = r"C:\workspace\MasterSemester1\WindEnergy\Project\data\numpy_arr\15cell_np.npy"
 WKA_data_path = r"C:\workspace\MasterSemester1\WindEnergy\Project\input_WKAs.json"
@@ -29,25 +29,12 @@ rfile = 'potentialareas_400m_forest.shp'
 # Die distanzmatrix enthält jetzt alle relevanten distanz informationen
 
 class WindEnergySiteSelectionProblem(ElementwiseProblem):
+    import numpy as np
 
-    def unit_vector(self, vector):
-        """ Returns the unit vector of the vector.  """
-        return vector / np.linalg.norm(vector)
-
-    def angle_between(self, v1, v2):
-        # Ich hab die methode einfach kopiert und hab keine ahnung ob die so richtig ist
-        """ Returns the angle in radians between vectors 'v1' and 'v2'::
-
-                >>> angle_between((1, 0, 0), (0, 1, 0))
-                1.5707963267948966
-                >>> angle_between((1, 0, 0), (1, 0, 0))
-                0.0
-                >>> angle_between((1, 0, 0), (-1, 0, 0))
-                3.141592653589793
-        """
-        v1_u = self.unit_vector(v1)
-        v2_u = self.unit_vector(v2)
-        return np.rad2deg(np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0)))
+    def angle_between(self, p1, p2):
+        ang1 = np.arctan2(*p1[::-1])
+        ang2 = np.arctan2(*p2[::-1])
+        return np.rad2deg((ang1 - ang2) % (2 * np.pi))
 
     def __init__(self, **kwargs):
         # super().__init__(n_var=gdf_optimization.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0, xu=1.0)
@@ -65,9 +52,8 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             # Todo: Überprüfen ob die Winkelberechnung auch nur etwas sinn macht.
             coor_1 = (points[combination[0] % len(points)].x, points[combination[0] % len(points)].y)
             coor_2 = (points[combination[1] % len(points)].x, points[combination[1] % len(points)].y)
-            coor_1_wind = (coor_1[0] + Wind_Vektor[0], coor_1[1] + Wind_Vektor[1])
-            coor_2_wind = (coor_2[0] + Wind_Vektor[0], coor_2[1] + Wind_Vektor[1])
-            angle = self.angle_between(coor_1_wind, coor_2_wind)
+            angle = self.angle_between(coor_2, coor_2)
+            angle_corr = (angle + Wind_deg) % 360
             print()
 
 

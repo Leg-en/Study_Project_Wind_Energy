@@ -8,6 +8,10 @@ from arcpy import conversion
 from arcpy import management
 
 cell_size = 5
+# Todo: Straßen Rausrechnen mit 15m abstand
+# Todo: Rotorfläche Komplett im Planungsgebiet
+# Todo: Allgemein 50 m Buffer, nicht nur zu anderen Planflöchen
+# Todo: Fundament implementieren
 
 arcpy.env.workspace = r"C:\workspace\MasterSemester1\WindEnergy\Project\data\study area"
 arcpy.env.parallelProcessingFactor = "100%"
@@ -75,5 +79,3 @@ dfnp = df["geometry"].to_numpy()
 with open(r"C:\workspace\MasterSemester1\WindEnergy\Project\data\numpy_arr\cell_size" + str(cell_size) + ".npy",
           "wb") as f:
     np.save(f, dfnp)
-
-# Todo: Fundamente mit einbeziehen, Abstände zu gebäuden mit einbeziehen

@@ -1,0 +1,144 @@
+{
+  "notes": [
+    "annahme": "Wir rechnen mit einem Preis von 2000 € pro kW installierter Nutzleistung."
+    "preis pro jahr": "entspricht ca. 9 % der aufstellungskosten"
+  ],
+  "turbines": [
+    {
+      "type": "E-70 E4",
+      "price": {
+        "price_wea_in_euro": 4600000.0,
+        "price_building": 5000000.0,
+        "price_per_year": 450000.0
+      },
+      "rotor_diameter_in_meter": 71.0,
+      "rotor_area_in_square_meters": "3959.0",
+      "nominal_power_in_kW": 2300.0,
+      "life_expectancy_in_years": 20.0,
+      "height": {
+        "wind_classes": ["IEC IA", "IEC IIA"],
+        "hub_height_in_meter": [
+          {
+            "IEC IA": [54, 64, 75],
+            "IEC IIA": [85, 98]
+          }
+        ]
+      },
+      "fundament_size": 30.0
+    },
+    {
+      "type": "E-82 E2",
+      "price": {
+        "price_wea_in_euro": [
+          {
+            "2000.0": 4000000.0,
+            "2300.0": 4600000.0
+          }
+        ],
+        "price_building": [
+          {
+            "2000.0": 4400000.0,
+            "2300.0": 5000000.0
+          }
+        ],
+        "price_per_year": [
+          {
+            "2000.0": 360000.0,
+            "2300.0": 450000.0
+          }
+        ]
+      },
+      "rotor_diameter_in_meter": 82.0,
+      "rotor_area_in_square_meters": "5281.0",
+      "nominal_power_in_kW": ["2000.0","2300.0"],
+      "life_expectancy_in_years": 20.0,
+      "height": {
+        "wind_classes": ["IEC IIA"],
+        "hub_height_in_meter": [
+          {
+            "IEC IIA": [78,84,85,98,108,138]
+          }
+        ]
+      },
+      "fundament_size": 30.0
+    },
+    {
+      "type": "E-82 E4",
+      "price": {
+        "price_wea_in_euro": [
+          {
+            "2350.0": 4700000.0,
+            "3000.0": 6000000.0
+          }
+        ],
+        "price_building": [
+          {
+            "2350.0": 5100000.0,
+            "3000.0": 6400000.0
+          }
+        ],
+        "price_per_year": [
+          {
+            "2350.0": 423000.0,
+            "3000.0": 540000.0
+          }
+        ]
+      },
+      "rotor_diameter_in_meter": 82.0,
+      "rotor_area_in_square_meters": "5281.0",
+      "nominal_power_in_kW": ["2350.0","3000.0"],
+      "life_expectancy_in_years": 25.0,
+      "height": {
+        "wind_classes": ["IEC IA","IEC IIA"],
+        "hub_height_in_meter": [
+          {
+            "IEC IA": [78,84],
+            "IEC IIA": [59,69]
+          }
+        ]
+      },
+      "fundament_size": 30.0
+    },
+    {
+      "type": "E-115 EP3 E3",
+      "price": {
+        "price_wea_in_euro": [
+          {
+            "2990.0": 5980000.0,
+            "4200.0": 8400000.0
+          }
+        ],
+        "price_building": [
+          {
+            "2990.0": 6380000.0,
+            "3420.0": 8800000.0
+          }
+        ],
+        "price_per_year": [
+          {
+            "2990.0": 538200.0,
+            "4200.0": 756000.0
+          }
+        ]
+      },
+      "rotor_diameter_in_meter": 115.7,
+      "rotor_area_in_square_meters": "10516.0",
+      "nominal_power_in_kW": ["2990.0","4200.0"],
+      "life_expectancy_in_years": 25.0,
+      "height": {
+        "wind_classes": ["IEC SA","IEC IIA"],
+        "hub_height_in_meter": [
+          {
+            "IEC SA": [67,92,122,149],
+            "IEC IIA": [135]
+          }
+        ]
+      },
+      "fundament_size": 30.0
+    }
+  ],
+  "area_information": {
+    "main_wind_direction": "Float",
+    "wind_class": "String"
+  }
+}

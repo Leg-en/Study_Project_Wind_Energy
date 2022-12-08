@@ -38,7 +38,7 @@
           }
         ]
       },
-      "fundament_size": 30.0
+      "fundament_diameter_in_meter": 30.0
     },
     {
       "type": "E-82 E2",
@@ -74,7 +74,7 @@
           }
         ]
       },
-      "fundament_size": 30.0
+      "fundament_diameter_in_meter": 30.0
     },
     {
       "type": "E-82 E4",
@@ -111,7 +111,7 @@
           }
         ]
       },
-      "fundament_size": 30.0
+      "fundament_diameter_in_meter": 30.0
     },
     {
       "type": "E-115 EP3 E3",
@@ -148,7 +148,7 @@
           }
         ]
       },
-      "fundament_size": 30.0
+      "fundament_diameter_in_meter": 30.0
     },
     {
       "type": "E-115 EP3 E4",
@@ -181,7 +181,7 @@
           }
         ]
       },
-      "fundament_size": 30.0
+      "fundament_diameter_in_meter": 30.0
     },
     {
       "type": "E-138 EP3 E2",
@@ -215,7 +215,7 @@
           }
         ]
       },
-      "fundament_size": 30.0
+      "fundament_diameter_in_meter": 30.0
     },
     {
       "type": "E-138 EP3 E2",
@@ -249,7 +249,7 @@
           }
         ]
       },
-      "fundament_size": 30.0
+      "fundament_diameter_in_meter": 30.0
     },
     {
       "type": "E-160 EP5 E2",
@@ -282,7 +282,7 @@
           }
         ]
       },
-      "fundament_size": 30.0
+      "fundament_diameter_in_meter": 30.0
     },
     {
       "type": "E-160 EP5 E3",
@@ -315,7 +315,7 @@
           }
         ]
       },
-      "fundament_size": 30.0
+      "fundament_diameter_in_meter": 30.0
     },
     {
       "type": "E-160 EP5 E2",
@@ -348,7 +348,7 @@
           }
         ]
       },
-      "fundament_size": 30.0
+      "fundament_diameter_in_meter": 30.0
     }
   ],
   "area_information": {

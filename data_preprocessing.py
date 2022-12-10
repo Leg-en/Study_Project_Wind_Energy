@@ -11,19 +11,15 @@ import json
 from tqdm import tqdm
 from glob import glob
 
-
-
-#Hier entsprechend eigene Pfade (/Variablen) Setzen
-cell_size = 50
+# Hier entsprechend eigene Pfade (/Variablen) Setzen
+cell_size = 20
 WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
 processed_data = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_" + str(cell_size) + "cell_size"
-
 
 with open(WKA_data_path, "r") as f:
     WKA_data = json.load(f)
 
 acc_data = None
-
 
 windklasse = WKA_data["area_information"]["wind_class"]
 
@@ -31,12 +27,11 @@ arcpy.env.workspace = r"C:\workspace\MasterSemester1\WindEnergy\Project\data\stu
 arcpy.env.parallelProcessingFactor = "100%"
 arcpy.env.outputCoordinateSystem = 'PROJCS["WGS_1984_Web_Mercator_Auxiliary_Sphere",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Mercator_Auxiliary_Sphere"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",0.0],PARAMETER["Standard_Parallel_1",0.0],PARAMETER["Auxiliary_Sphere_Type",0.0],UNIT["Meter",1.0]]'
 
-
 numpy_array = processed_data + r"\numpy_array"
 os.mkdir(processed_data)
 os.mkdir(numpy_array)
 
-#flurstuecke = r"flurstuecke.shp"
+# flurstuecke = r"flurstuecke.shp"
 flurstuecke = r"C:\workspace\MasterSemester1\WindEnergy\Project\ArcGIS Project\WindEnergy.gdb\Flurstuecke_Area_Intersect"
 potential_areas = r"potential_areas_lpa_400m.shp"
 hausumringe = r"hausumringe.shp"

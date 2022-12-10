@@ -10,11 +10,14 @@ from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
+from tqdm import tqdm
+import multiprocessing
+from pymoo.core.problem import StarmapParallelization
 
 Wind_deg = 270
 
 points_path = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_50cell_size\numpy_array\points_50.npy"
-WKA_data_path = r"C:\workspace\MasterSemester1\WindEnergy\Project\input_WKAs.json"
+WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
 
 with open(points_path, "rb") as f:
     points = np.load(f, allow_pickle=True)
@@ -25,17 +28,14 @@ WKAs = {}
 for wka in WKA_data["turbines"]:
     WKAs[wka["type"].replace(" ", "_")] = wka
 
-dir = r'input'
-rfile = 'potentialareas_400m_forest.shp'
+print("Daten geladen und bereit")
 
-
-# Die distanzmatrix enthält jetzt alle relevanten distanz informationen
 
 class WindEnergySiteSelectionProblem(ElementwiseProblem):
 
     def __init__(self, **kwargs):
         # super().__init__(n_var=gdf_optimization.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0, xu=1.0)
-        super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=1, xl=0.0,
+        super().__init__(n_var=points.shape[0], n_obj=1, n_ieq_constr=1, xl=0.0,
                          xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
 
     def _evaluate(self, x, out, *args, **kwargs):
@@ -47,9 +47,31 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             WKA2 = points[combination[1]]
             WKA1_type = WKAs[WKA1[0]]
             WKA2_type = WKAs[WKA2[0]]
-            d = WKA1[1].distance[WKA2[1]]
+            d = WKA1[1].distance(WKA2[1])
             if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
                 constraints_np = 1
+                break
+
+        vals = np.where(x, points[:, 0], "")
+
+        uniques, count = np.unique(vals, return_counts=True)
+
+        type_prices = {}
+        for idx, item in enumerate(uniques):
+            if item == "":
+                continue
+            building_price = WKAs[item]["price"]["price_building"]
+            price_per_year = WKAs[item]["price"]["price_per_year"]
+            sum_price_one = building_price + (price_per_year * WKAs[item]["life_expectancy_in_years"])
+            type_prices[item] = sum_price_one
+
+        for key, value in type_prices.items():
+            vals[vals == key] = value
+        vals[vals == ""] = 0
+
+        #Todo: Nennleistung hinzufügen
+
+        out["F"] = np.asarray([np.sum(vals)])
         out["G"] = np.asarray([constraints_np])
 
 

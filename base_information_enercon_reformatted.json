@@ -3,15 +3,9 @@
     {
       "type": "E-70 E4",
       "price": {
-        "price_wea_in_euro": {
-          "2300.0": 4600000.0
-        },
-        "price_building": {
-          "2300.0": 5000000.0
-        },
-        "price_per_year": {
-          "2300.0": 450000.0
-        }
+        "price_wea_in_euro": 4600000.0,
+        "price_building": 5000000.0,
+        "price_per_year": 450000.0
       },
       "rotor_diameter_in_meter": 71.0,
       "rotor_area_in_square_meters": 3959.0,
@@ -41,15 +35,9 @@
     {
       "type": "E-82 E2 2000",
       "price": {
-        "price_wea_in_euro": {
-          "2000.0": 4000000.0
-        },
-        "price_building": {
-          "2000.0": 4400000.0
-        },
-        "price_per_year": {
-          "2000.0": 360000.0
-        }
+        "price_wea_in_euro": 4000000.0,
+        "price_building": 4400000.0,
+        "price_per_year": 360000.0
       },
       "rotor_diameter_in_meter": 82.0,
       "rotor_area_in_square_meters": 5281.0,
@@ -75,15 +63,9 @@
     {
       "type": "E-82 E2 2300.0",
       "price": {
-        "price_wea_in_euro": {
-          "2300.0": 4600000.0
-        },
-        "price_building": {
-          "2300.0": 5000000.0
-        },
-        "price_per_year": {
-          "2300.0": 450000.0
-        }
+        "price_wea_in_euro": 4600000.0,
+        "price_building": 5000000.0,
+        "price_per_year": 450000.0
       },
       "rotor_diameter_in_meter": 82.0,
       "rotor_area_in_square_meters": 5281.0,

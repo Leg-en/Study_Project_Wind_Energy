@@ -37,7 +37,7 @@ os.mkdir(processed_data)
 os.mkdir(numpy_array)
 
 #flurstuecke = r"flurstuecke.shp"
-flurstuecke = r"C:\workspace\MasterSemester1\WindEnergy\Project\ArcGIS Project\WindEnergy.gdb\Flurstuecke_"
+flurstuecke = r"C:\workspace\MasterSemester1\WindEnergy\Project\ArcGIS Project\WindEnergy.gdb\Flurstuecke_Area_Intersect"
 potential_areas = r"potential_areas_lpa_400m.shp"
 hausumringe = r"hausumringe.shp"
 wege = r"strassen_und_wege.shp"

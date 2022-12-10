@@ -1,81 +1,149 @@
 import os
+import time
 import arcpy
-import geopandas as gdf
+import geopandas as gpd
 import numpy as np
 import shapefile
 from arcpy import analysis
 from arcpy import conversion
 from arcpy import management
+import json
+from tqdm import tqdm
+from glob import glob
 
-cell_size = 5
-# Todo: Straßen Rausrechnen mit 15m abstand
-# Todo: Rotorfläche Komplett im Planungsgebiet
-# Todo: Allgemein 50 m Buffer, nicht nur zu anderen Planflöchen
-# Todo: Fundament implementieren
+
+
+#Hier entsprechend eigene Pfade (/Variablen) Setzen
+cell_size = 50
+WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
+processed_data = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_" + str(cell_size) + "cell_size"
+
+
+with open(WKA_data_path, "r") as f:
+    WKA_data = json.load(f)
+
+acc_data = None
+
+
+windklasse = WKA_data["area_information"]["wind_class"]
 
 arcpy.env.workspace = r"C:\workspace\MasterSemester1\WindEnergy\Project\data\study area"
 arcpy.env.parallelProcessingFactor = "100%"
 arcpy.env.outputCoordinateSystem = 'PROJCS["WGS_1984_Web_Mercator_Auxiliary_Sphere",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Mercator_Auxiliary_Sphere"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",0.0],PARAMETER["Standard_Parallel_1",0.0],PARAMETER["Auxiliary_Sphere_Type",0.0],UNIT["Meter",1.0]]'
 
-processed_data = r"C:\workspace\MasterSemester1\WindEnergy\Project\data\processed_data_" + str(cell_size) + "cell_size"
-os.mkdir(processed_data)
 
-flurstuecke = r"flurstuecke.shp"
+numpy_array = processed_data + r"\numpy_array"
+os.mkdir(processed_data)
+os.mkdir(numpy_array)
+
+#flurstuecke = r"flurstuecke.shp"
+flurstuecke = r"C:\workspace\MasterSemester1\WindEnergy\Project\ArcGIS Project\WindEnergy.gdb\Flurstuecke_"
 potential_areas = r"potential_areas_lpa_400m.shp"
 hausumringe = r"hausumringe.shp"
+wege = r"strassen_und_wege.shp"
 
-Clipped = processed_data + r"\clipped_data"
-analysis.PairwiseClip(flurstuecke, potential_areas, Clipped)
+for WKA in tqdm(WKA_data["turbines"]):
+    if windklasse not in WKA["height"]["wind_classes"]:
+        print("WKA Verfügt nicht über die Windklasse")
+        continue
 
-# Erfüllt constraint mit 15m abstand zur flurstücksgrenze
-Area_Flurstuecke_bufferd = processed_data + r"\bestehend"
-analysis.PairwiseBuffer(Clipped, Area_Flurstuecke_bufferd, "-15 Meters", "NONE", None, "PLANAR", "0 Meters")
+    s_path = processed_data + r"\type_" + WKA["type"].replace(" ", "_")
+    os.mkdir(s_path)
+    s_path_gdb = processed_data + r"\type_" + WKA["type"].replace(" ", "_") + ".gdb"
+    arcpy.CreateFileGDB_management(processed_data, r"\type_" + WKA["type"].replace(" ", "_") + ".gdb")
 
-# Bufferd_hausumringe = processed_data + r"\bufferd_data"
-# analysis.PairwiseBuffer(hausumringe, Bufferd_hausumringe, "50 Meters", "NONE", None, "PLANAR", "0 Meters")
-#
-# House_Erased_data = processed_data + r"\house_erased"
-# analysis.PairwiseErase(Area_Flurstuecke_bufferd, Bufferd_hausumringe, House_Erased_data)
+    # Berechnet den Buffer für die Häuser. Es wird immer die n fache WKA Höhe genommen. in diesem falle ist n=2
+    buffer_size = WKA["height"]["hub_height_in_meter"][windklasse][0]
+    haus_buffer_path = s_path_gdb + r"\haus_buffer"
+    analysis.PairwiseBuffer(hausumringe,
+                            haus_buffer_path,
+                            str(buffer_size * 2) + " Meters", "NONE", None, "PLANAR", "0 Meters")
 
+    # Berechnet Buffer zu wegen. Der buffer ist immer 30 Meter
+    wege_buffer_path = s_path_gdb + r"\wege_buffer"
+    analysis.PairwiseBuffer(wege,
+                            wege_buffer_path,
+                            "30 Meters", "NONE", None, "PLANAR", "0 Meters")
 
-# Ab hier ist die erfüllung des Constraints von mindestens 50m abstand zu einander
-bestehend_buffered = processed_data + r"\bestehend_buffered"
-analysis.PairwiseBuffer(potential_areas, bestehend_buffered, "50 Meters", "NONE", None, "PLANAR", "0 Meters")
+    # Berechnet einen buffer so das der Rotor immer innerhalb der planfläche ist
+    diameter = WKA["rotor_diameter_in_meter"]
+    radius = diameter / 2
+    rotor_in_area_buffer_path = s_path_gdb + r"\rotor_in_area_buffer"
+    analysis.PairwiseBuffer(potential_areas,
+                            rotor_in_area_buffer_path,
+                            str(-radius) + " Meters", "NONE", None, "PLANAR", "0 Meters")
 
-buffered_intersects = processed_data + r"\buffered_intersects"
-analysis.PairwiseIntersect(bestehend_buffered, buffered_intersects, "ALL", None, "INPUT")
+    # Die folgenden beiden stellen sicher das 50meter + die fundament größe abstand zu flurstücksgrenzen gehalten werden.
+    # Erst flurstücke buffern
+    flurstuecke_buffered_path = s_path_gdb + r"\flurstuecke_buffered"
+    buffer_size = 50 + WKA["fundament_size"]  # Annahme das die Fundament size den Radius wiedergibt
+    analysis.PairwiseBuffer(flurstuecke,
+                            flurstuecke_buffered_path,
+                            str(buffer_size) + " Meters", "NONE", None, "PLANAR", "0 Meters")
 
-Intersects_erased = processed_data + r"\Intersects_erased"
-analysis.PairwiseErase(Area_Flurstuecke_bufferd, buffered_intersects, Intersects_erased, None)
+    # dann mit sich selbst intersecten
+    # Anscheinend kommt dieses, aber auch nur dieses, tool nicht mit leerzeichen im dateinamen klar...
+    flurstuecke_buffered_self_intersected_path = s_path_gdb + r"\flurstuecke_buffered_self_intersected"
+    analysis.PairwiseIntersect(in_features=flurstuecke_buffered_path,
+                               out_feature_class=flurstuecke_buffered_self_intersected_path,
+                               join_attributes="ALL", cluster_tolerance=None, output_type="INPUT")
 
-# Points über das gesamte ausmaß ansetzen und dann entsprechend Clippend. Deutlich Simpler, stärker Limitiert. Daher grobere zellgröße
+    flurstuecke_erased_path = s_path_gdb + r"\flurstuecke_erased"
+    analysis.PairwiseErase(rotor_in_area_buffer_path, flurstuecke_buffered_self_intersected_path,
+                           flurstuecke_erased_path,
+                           None)
 
-sf = shapefile.Reader(Intersects_erased)
-originCoordinate = "" + str(sf.bbox[0]) + " " + str(sf.bbox[1])
-yAxisCoordinate = "" + str(sf.bbox[0]) + " " + str(sf.bbox[1] + 10)
-oppositeCoorner = "" + str(sf.bbox[2]) + " " + str(sf.bbox[3])
-labels = 'LABELS'
-# Extent is set by origin and opposite corner - no need to use a template fc
-templateExtent = '#'
-geometryType = 'POLYLINE'
+    flurstuecke_wege_erased_path = s_path_gdb + r"\flurstuecke_wege_erased"
+    analysis.PairwiseErase(flurstuecke_erased_path, wege_buffer_path,
+                           flurstuecke_wege_erased_path,
+                           None)
 
-gdb_path = processed_data + r"\result.gdb"
-arcpy.CreateFileGDB_management(processed_data, "result.gdb")
+    flurstuecke_wege_erased_path_shapefile = s_path + r"\flurstuecke_wege_erased"
+    # Exportieren in shapefile um die koordinaten auszulesen
+    conversion.ExportFeatures(flurstuecke_wege_erased_path, flurstuecke_wege_erased_path_shapefile, '',
+                              "NOT_USE_ALIAS", None, None)
 
-points = gdb_path + r"\points"
-management.CreateFishnet(points, originCoordinate, yAxisCoordinate, cell_size, cell_size, None, None, oppositeCoorner,
-                         labels, templateExtent, geometryType)
+    sf = shapefile.Reader(flurstuecke_wege_erased_path_shapefile)
+    originCoordinate = "" + str(sf.bbox[0]) + " " + str(sf.bbox[1])
+    yAxisCoordinate = "" + str(sf.bbox[0]) + " " + str(sf.bbox[1] + 10)
+    oppositeCoorner = "" + str(sf.bbox[2]) + " " + str(sf.bbox[3])
+    labels = 'LABELS'
+    # Extent is set by origin and opposite corner - no need to use a template fc
+    templateExtent = '#'
+    geometryType = 'POLYLINE'
+    sf.close()
 
-intersection_points = gdb_path + r"\inter_points"
-analysis.PairwiseClip(points + "_label", Intersects_erased,
-                      intersection_points,
-                      None)
+    files = glob(s_path + r"\*")
+    for file in files:
+        os.remove(file)
 
-points_final = processed_data + r"\final_points"
-conversion.ExportFeatures(intersection_points, points_final, '', "NOT_USE_ALIAS", None, None)
+    # Fishnet erstellen
+    fishnet_path = s_path_gdb + r"\fishnet"
+    management.CreateFishnet(fishnet_path, originCoordinate, yAxisCoordinate, cell_size, cell_size, None, None,
+                             oppositeCoorner,
+                             labels, templateExtent, geometryType)
 
-df = gdf.read_file(points_final + ".shp")
-dfnp = df["geometry"].to_numpy()
-with open(r"C:\workspace\MasterSemester1\WindEnergy\Project\data\numpy_arr\cell_size" + str(cell_size) + ".npy",
+    intersection_points = s_path_gdb + r"\inter_points"
+    analysis.PairwiseClip(fishnet_path + "_label", flurstuecke_wege_erased_path,
+                          intersection_points,
+                          None)
+
+    # Erstellt ein neues Feld und setzt dort den WKA Typ
+    management.AddField(intersection_points, "WKA_TYPE", "TEXT")
+    management.CalculateField(
+        intersection_points,
+        "WKA_TYPE", "'" + WKA["type"].replace(" ", "_") + "'")
+
+    points_shapefile_path = s_path + r"\points_shape"
+    conversion.ExportFeatures(intersection_points, points_shapefile_path, '', "NOT_USE_ALIAS", None, None)
+
+    df = gpd.read_file(points_shapefile_path + ".shp")
+    df_np = df.to_numpy()
+    if acc_data is not None:
+        acc_data = np.concatenate((acc_data, df_np))
+    else:
+        acc_data = df_np
+
+with open(numpy_array + "\points_" + str(cell_size) + ".npy",
           "wb") as f:
-    np.save(f, dfnp)
+    np.save(f, acc_data)

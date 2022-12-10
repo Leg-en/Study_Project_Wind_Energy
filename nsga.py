@@ -13,13 +13,17 @@ from pymoo.visualization.scatter import Scatter
 
 Wind_deg = 270
 
-points_path = r"C:\workspace\MasterSemester1\WindEnergy\Project\data\numpy_arr\15cell_np.npy"
+points_path = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_50cell_size\numpy_array\points_50.npy"
 WKA_data_path = r"C:\workspace\MasterSemester1\WindEnergy\Project\input_WKAs.json"
 
 with open(points_path, "rb") as f:
     points = np.load(f, allow_pickle=True)
 with open(WKA_data_path, "r") as f:
     WKA_data = json.load(f)
+
+WKAs = {}
+for wka in WKA_data["turbines"]:
+    WKAs[wka["type"].replace(" ", "_")] = wka
 
 dir = r'input'
 rfile = 'potentialareas_400m_forest.shp'
@@ -31,21 +35,22 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
 
     def __init__(self, **kwargs):
         # super().__init__(n_var=gdf_optimization.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0, xu=1.0)
-        super().__init__(n_var=(points.shape[0] * len(WKA_data["turbines"])), n_obj=2, n_ieq_constr=1, xl=0.0,
+        super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=1, xl=0.0,
                          xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
 
     def _evaluate(self, x, out, *args, **kwargs):
         indices = np.where(x)[0]
         combs = combinations(indices, 2)
+        constraints_np = -1
         for combination in combs:
-            WKA_Type1 = int(combination[0] / len(points))
-            WKA_Type2 = combination[0] / len(points)
-            d = points[combination[0] % len(points)].distance(points[combination[1] % len(points)])
-
-            # Todo: Überprüfen ob die Winkelberechnung auch nur etwas sinn macht.
-            coor_1 = (points[combination[0] % len(points)].x, points[combination[0] % len(points)].y)
-            coor_2 = (points[combination[1] % len(points)].x, points[combination[1] % len(points)].y)
-            print()
+            WKA1 = points[combination[0]]
+            WKA2 = points[combination[1]]
+            WKA1_type = WKAs[WKA1[0]]
+            WKA2_type = WKAs[WKA2[0]]
+            d = WKA1[1].distance[WKA2[1]]
+            if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
+                constraints_np = 1
+        out["G"] = np.asarray([constraints_np])
 
 
 class MyCallback(Callback):

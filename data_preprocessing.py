@@ -1,5 +1,4 @@
 import os
-import time
 import arcpy
 import geopandas as gpd
 import numpy as np

@@ -70,7 +70,7 @@ for WKA in tqdm(WKA_data["turbines"]):
     # Die folgenden beiden stellen sicher das 50meter + die fundament größe abstand zu flurstücksgrenzen gehalten werden.
     # Erst flurstücke buffern
     flurstuecke_buffered_path = s_path_gdb + r"\flurstuecke_buffered"
-    buffer_size = 50 + WKA["fundament_size"]  # Annahme das die Fundament size den Radius wiedergibt
+    buffer_size = 50 + (WKA["fundament_diameter_in_meter"]/2)  # Annahme das die Fundament size den Radius wiedergibt
     analysis.PairwiseBuffer(flurstuecke,
                             flurstuecke_buffered_path,
                             str(buffer_size) + " Meters", "NONE", None, "PLANAR", "0 Meters")
@@ -91,13 +91,17 @@ for WKA in tqdm(WKA_data["turbines"]):
     analysis.PairwiseErase(flurstuecke_erased_path, wege_buffer_path,
                            flurstuecke_wege_erased_path,
                            None)
+    flurstuecke_wege_hauser_erased_path = s_path_gdb + r"\flurstuecke_wege_hauser_erased"
+    arcpy.analysis.PairwiseErase(flurstuecke_wege_erased_path, haus_buffer_path,
+                                 flurstuecke_wege_hauser_erased_path,
+                                 None)
 
-    flurstuecke_wege_erased_path_shapefile = s_path + r"\flurstuecke_wege_erased"
+    flurstuecke_wege_hauser_erased_path_shapefile = s_path + r"\flurstuecke_wege_hauser_erased"
     # Exportieren in shapefile um die koordinaten auszulesen
-    conversion.ExportFeatures(flurstuecke_wege_erased_path, flurstuecke_wege_erased_path_shapefile, '',
+    conversion.ExportFeatures(flurstuecke_wege_erased_path, flurstuecke_wege_hauser_erased_path_shapefile, '',
                               "NOT_USE_ALIAS", None, None)
 
-    sf = shapefile.Reader(flurstuecke_wege_erased_path_shapefile)
+    sf = shapefile.Reader(flurstuecke_wege_hauser_erased_path_shapefile)
     originCoordinate = "" + str(sf.bbox[0]) + " " + str(sf.bbox[1])
     yAxisCoordinate = "" + str(sf.bbox[0]) + " " + str(sf.bbox[1] + 10)
     oppositeCoorner = "" + str(sf.bbox[2]) + " " + str(sf.bbox[3])

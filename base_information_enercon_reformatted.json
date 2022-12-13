@@ -9,9 +9,7 @@
       },
       "rotor_diameter_in_meter": 71.0,
       "rotor_area_in_square_meters": 3959.0,
-      "nominal_power_in_kW": [
-        2300.0
-      ],
+      "nominal_power_in_kW": 2300.0,
       "life_expectancy_in_years": 20.0,
       "height": {
         "wind_classes": [

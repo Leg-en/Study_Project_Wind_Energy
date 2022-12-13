@@ -69,9 +69,25 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             vals[vals == key] = value
         vals[vals == ""] = 0
 
-        #Todo: Nennleistung hinzufügen
+        #Grundlage für Energieberechnung https://www.energie-lexikon.info/megawattstunde.html
+        vals_ = np.where(x, points[:, 0], "")
+        uniques, count = np.unique(vals_, return_counts=True)
 
-        out["F"] = np.asarray([np.sum(vals)])
+        type_energy = {}
+        for idx, item in enumerate(uniques):
+            if item == "":
+                continue
+            nominal_power = WKAs[item]["nominal_power_in_kW"]
+            lifetime_hours = WKAs[item]["life_expectancy_in_years"] * 8760 #Laut google ist 1 Jahr 8760 stundn
+            kwh = nominal_power * lifetime_hours
+            type_prices[item] = kwh
+
+        for key, value in type_energy.items():
+            vals_[vals_ == key] = value
+        vals_[vals_ == ""] = 0
+
+
+        out["F"] = np.column_stack([np.sum(vals), np.sum(vals_)])
         out["G"] = np.asarray([constraints_np])
 
 

@@ -10,7 +10,6 @@ from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
-from tqdm import tqdm
 import multiprocessing
 from pymoo.core.problem import StarmapParallelization
 
@@ -69,7 +68,7 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             vals[vals == key] = value
         vals[vals == ""] = 0
 
-        #Grundlage für Energieberechnung https://www.energie-lexikon.info/megawattstunde.html
+        # Grundlage für Energieberechnung https://www.energie-lexikon.info/megawattstunde.html
         vals_ = np.where(x, points[:, 0], "")
         uniques, count = np.unique(vals_, return_counts=True)
 
@@ -78,14 +77,13 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             if item == "":
                 continue
             nominal_power = WKAs[item]["nominal_power_in_kW"]
-            lifetime_hours = WKAs[item]["life_expectancy_in_years"] * 8760 #Laut google ist 1 Jahr 8760 stundn
+            lifetime_hours = WKAs[item]["life_expectancy_in_years"] * 8760  # Laut google ist 1 Jahr 8760 stundn
             kwh = nominal_power * lifetime_hours
             type_prices[item] = kwh
 
         for key, value in type_energy.items():
             vals_[vals_ == key] = value
         vals_[vals_ == ""] = 0
-
 
         out["F"] = np.column_stack([np.sum(vals), np.sum(vals_)])
         out["G"] = np.asarray([constraints_np])
@@ -98,10 +96,11 @@ class MyCallback(Callback):
         self.off = {}
 
     def notify(self, algorithm):
-        self.off[algorithm.n_gen] = algorithm.off
+        self.off[algorithm.n_gen] = algorithm
 
 
 def main():
+    #Todo: Population Size und Iterationsanzahl passend wählen
     algorithm = NSGA2(pop_size=100,
                       sampling=BinaryRandomSampling(),
                       crossover=TwoPointCrossover(),

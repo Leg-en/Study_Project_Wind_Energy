@@ -100,7 +100,7 @@ for WKA in tqdm(WKA_data["turbines"]):
     sf = shapefile.Reader(flurstuecke_wege_erased_path_shapefile)
     originCoordinate = "" + str(sf.bbox[0]) + " " + str(sf.bbox[1])
     yAxisCoordinate = "" + str(sf.bbox[0]) + " " + str(sf.bbox[1] + 10)
-    oppositeCoorner = "" + str(sf.bbox[2]) + " " + str(sf.bbox[3])
+    oppositeCorner = "" + str(sf.bbox[2]) + " " + str(sf.bbox[3])
     labels = 'LABELS'
     # Extent is set by origin and opposite corner - no need to use a template fc
     templateExtent = '#'
@@ -114,8 +114,7 @@ for WKA in tqdm(WKA_data["turbines"]):
     # Fishnet erstellen
     fishnet_path = s_path_gdb + r"\fishnet"
     management.CreateFishnet(fishnet_path, originCoordinate, yAxisCoordinate, cell_size, cell_size, None, None,
-                             oppositeCoorner,
-                             labels, templateExtent, geometryType)
+                             oppositeCorner, labels, templateExtent, geometryType)
 
     intersection_points = s_path_gdb + r"\inter_points"
     analysis.PairwiseClip(fishnet_path + "_label", flurstuecke_wege_erased_path,

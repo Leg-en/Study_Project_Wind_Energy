@@ -10,9 +10,10 @@ from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
-from tqdm import tqdm
 import multiprocessing
 from pymoo.core.problem import StarmapParallelization
+
+repair_mode = False
 
 Wind_deg = 270
 
@@ -35,22 +36,35 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
 
     def __init__(self, **kwargs):
         # super().__init__(n_var=gdf_optimization.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0, xu=1.0)
-        super().__init__(n_var=points.shape[0], n_obj=1, n_ieq_constr=1, xl=0.0,
-                         xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
+        if repair_mode:
+            super().__init__(n_var=points.shape[0], n_obj=1, n_ieq_constr=1, xl=0.0,
+                             xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
+        else:
+            super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=1, xl=0.0,
+                             xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
+
+
 
     def _evaluate(self, x, out, *args, **kwargs):
         indices = np.where(x)[0]
         combs = combinations(indices, 2)
         constraints_np = -1
+
+        def repair(x1, x2):
+            x[x1] = False
+
         for combination in combs:
             WKA1 = points[combination[0]]
             WKA2 = points[combination[1]]
             WKA1_type = WKAs[WKA1[0]]
             WKA2_type = WKAs[WKA2[0]]
             d = WKA1[1].distance(WKA2[1])
-            if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
-                constraints_np = 1
-                break
+            if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d and combination[0] and combination[1]:
+                if repair_mode:
+                    repair(combination[0], combination[1])
+                else:
+                    constraints_np = 1
+                    break
 
         vals = np.where(x, points[:, 0], "")
 
@@ -68,10 +82,27 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
         for key, value in type_prices.items():
             vals[vals == key] = value
         vals[vals == ""] = 0
+        vals_sum = np.sum(vals)
 
-        #Todo: Nennleistung hinzufügen
+        # Grundlage für Energieberechnung https://www.energie-lexikon.info/megawattstunde.html
+        vals_ = np.where(x, points[:, 0], "")
+        uniques, count = np.unique(vals_, return_counts=True)
 
-        out["F"] = np.asarray([np.sum(vals)])
+        type_energy = {}
+        for idx, item in enumerate(uniques):
+            if item == "":
+                continue
+            nominal_power = WKAs[item]["nominal_power_in_kW"]
+            lifetime_hours = WKAs[item]["life_expectancy_in_years"] * 8760  # Laut google ist 1 Jahr 8760 stundn
+            kwh = nominal_power * lifetime_hours
+            type_energy[item] = kwh
+
+        for key, value in type_energy.items():
+            vals_[vals_ == key] = value
+        vals_[vals_ == ""] = 0
+        vals__sum = np.sum(vals_)
+
+        out["F"] = np.column_stack([vals_sum, vals__sum])
         out["G"] = np.asarray([constraints_np])
 
 
@@ -82,22 +113,23 @@ class MyCallback(Callback):
         self.off = {}
 
     def notify(self, algorithm):
-        self.off[algorithm.n_gen] = algorithm.off
+        self.off[algorithm.n_gen] = algorithm
 
 
 def main():
+    #Todo: Population Size und Iterationsanzahl passend wählen
     algorithm = NSGA2(pop_size=100,
                       sampling=BinaryRandomSampling(),
                       crossover=TwoPointCrossover(),
                       mutation=BitflipMutation(),
                       eliminate_duplicates=True)
 
-    n_proccess = 10
-    # pool = multiprocessing.Pool(n_proccess)
-    # runner = StarmapParallelization(pool.starmap)
+    n_proccess = 8
+    pool = multiprocessing.Pool(n_proccess)
+    runner = StarmapParallelization(pool.starmap)
 
-    # problem = WindEnergySiteSelectionProblem(elementwise_runner=runner)
-    problem = WindEnergySiteSelectionProblem()
+    problem = WindEnergySiteSelectionProblem(elementwise_runner=runner)
+    #problem = WindEnergySiteSelectionProblem()
     callback = MyCallback()
     res = minimize(problem,
                    algorithm,

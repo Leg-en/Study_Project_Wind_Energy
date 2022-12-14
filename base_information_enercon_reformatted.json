@@ -9,9 +9,7 @@
       },
       "rotor_diameter_in_meter": 71.0,
       "rotor_area_in_square_meters": 3959.0,
-      "nominal_power_in_kW": [
-        2300.0
-      ],
+      "nominal_power_in_kW": 2300.0,
       "life_expectancy_in_years": 20.0,
       "height": {
         "wind_classes": [
@@ -30,7 +28,7 @@
           ]
         }
       },
-      "fundament_size": 30.0
+      "fundament_diameter_in_meter": 30.0
     },
     {
       "type": "E-115 EP3 E3 2990.0",
@@ -44,13 +42,21 @@
       "nominal_power_in_kW": 2990.0,
       "life_expectancy_in_years": 25.0,
       "height": {
-        "wind_classes": ["IEC SA","IEC IIA"],
-        "hub_height_in_meter": [
-          {
-            "IEC SA": [67,92,122,149],
-            "IEC IIA": [135]
-          }
-        ]
+        "wind_classes": [
+          "IEC SA",
+          "IEC IIA"
+        ],
+        "hub_height_in_meter": {
+          "IEC SA": [
+            67,
+            92,
+            122,
+            149
+          ],
+          "IEC IIA": [
+            135
+          ]
+        }
       },
       "fundament_diameter_in_meter": 30.0
     },
@@ -66,13 +72,21 @@
       "nominal_power_in_kW": 4200.0,
       "life_expectancy_in_years": 25.0,
       "height": {
-        "wind_classes": ["IEC SA","IEC IIA"],
-        "hub_height_in_meter": [
-          {
-            "IEC SA": [67,92,122,149],
-            "IEC IIA": [135]
-          }
-        ]
+        "wind_classes": [
+          "IEC SA",
+          "IEC IIA"
+        ],
+        "hub_height_in_meter": {
+          "IEC SA": [
+            67,
+            92,
+            122,
+            149
+          ],
+          "IEC IIA": [
+            135
+          ]
+        }
       },
       "fundament_diameter_in_meter": 30.0
     }

@@ -43,8 +43,6 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=1, xl=0.0,
                              xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
 
-
-
     def _evaluate(self, x, out, *args, **kwargs):
         indices = np.where(x)[0]
         combs = combinations(indices, 2)
@@ -93,7 +91,7 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             if item == "":
                 continue
             nominal_power = WKAs[item]["nominal_power_in_kW"]
-            lifetime_hours = WKAs[item]["life_expectancy_in_years"] * 8760  # Laut google ist 1 Jahr 8760 stundn
+            lifetime_hours = WKAs[item]["life_expectancy_in_years"] * 8760  # Laut google ist 1 Jahr 8760 stunden # trifft nicht auf schaltjahre zu. Dort sind es 8784
             kwh = nominal_power * lifetime_hours
             type_energy[item] = kwh
 

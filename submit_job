@@ -20,6 +20,7 @@ module load palma/2021a Miniconda3/4.9.2 # CHANGE
 CONDA_BASE=$(conda info --base)
 source $CONDA_BASE/etc/profile.d/conda.sh
 conda deactivate
-conda activate yolov1 # CHANGE
+conda activate windEnergy # CHANGE
 
-srun --export=ALL python3 train_VOC.py -e 500 # CHANGE
+
+srun --export=ALL python3 nsga.py  # CHANGE

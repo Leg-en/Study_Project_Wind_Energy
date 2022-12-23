@@ -17,8 +17,24 @@ repair_mode = False
 
 Wind_deg = 270
 
-points_path = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_50cell_size\numpy_array\points_50.npy"
-WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
+# Pfade müssen angepasst werden
+USER = 'Josefina'
+RUN_LOCAL = True
+if USER == 'Emily':
+    if RUN_LOCAL:
+        points_path = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_50cell_size\numpy_array\points_50.npy"
+        WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
+    else:
+        points_path = r""
+        WKA_data_path = r""
+elif USER == 'Josefina':
+    if RUN_LOCAL:
+        points_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_50.npy"
+        WKA_data_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
+    else:
+        points_path = r"/scratch/tmp/jbalzer/Study_Project/data/points_50.npy"
+        WKA_data_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
+
 
 with open(points_path, "rb") as f:
     points = np.load(f, allow_pickle=True)

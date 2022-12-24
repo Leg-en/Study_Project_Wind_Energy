@@ -12,26 +12,26 @@ from pymoo.optimize import minimize
 import multiprocessing
 from pymoo.core.problem import StarmapParallelization
 
-repair_mode = False
+repair_mode = True
 
-Wind_deg = 270
+cell_size = 100
 
 # Pfade müssen angepasst werden
 USER = 'Emily'
-RUN_LOCAL = True
+RUN_LOCAL = False
 if USER == 'Emily':
     if RUN_LOCAL:
-        points_path = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_50cell_size\numpy_array\points_50.npy"
+        points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
         WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
     else:
-        points_path = r"/scratch/tmp/m_ster15/points_100.npy"
+        points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}.npy"
         WKA_data_path = r"/home/m/m_ster15/WindEnergy/base_information_enercon_reformatted.json"
 elif USER == 'Josefina':
     if RUN_LOCAL:
-        points_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_50.npy"
+        points_path = fr"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_{cell_size}.npy"
         WKA_data_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
     else:
-        points_path = r"/scratch/tmp/jbalzer/Study_Project/data/points_50.npy"
+        points_path = fr"/scratch/tmp/jbalzer/Study_Project/data/points_{cell_size}.npy"
         WKA_data_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
 
 
@@ -137,7 +137,7 @@ def main():
                       mutation=BitflipMutation(),
                       eliminate_duplicates=True)
 
-    n_proccess = 12
+    n_proccess = 71
     pool = multiprocessing.Pool(n_proccess)
     runner = StarmapParallelization(pool.starmap)
 

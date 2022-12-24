@@ -9,7 +9,6 @@ from pymoo.operators.crossover.pntx import TwoPointCrossover
 from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
-from pymoo.visualization.scatter import Scatter
 import multiprocessing
 from pymoo.core.problem import StarmapParallelization
 
@@ -18,15 +17,15 @@ repair_mode = False
 Wind_deg = 270
 
 # Pfade müssen angepasst werden
-USER = 'Josefina'
+USER = 'Emily'
 RUN_LOCAL = True
 if USER == 'Emily':
     if RUN_LOCAL:
         points_path = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_50cell_size\numpy_array\points_50.npy"
         WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
     else:
-        points_path = r""
-        WKA_data_path = r""
+        points_path = r"/scratch/tmp/m_ster15/points_100.npy"
+        WKA_data_path = r"/home/m/m_ster15/WindEnergy/base_information_enercon_reformatted.json"
 elif USER == 'Josefina':
     if RUN_LOCAL:
         points_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_50.npy"
@@ -138,7 +137,7 @@ def main():
                       mutation=BitflipMutation(),
                       eliminate_duplicates=True)
 
-    n_proccess = 8
+    n_proccess = 12
     pool = multiprocessing.Pool(n_proccess)
     runner = StarmapParallelization(pool.starmap)
 
@@ -152,14 +151,38 @@ def main():
                    seed=1,
                    verbose=True)
 
-    with open("result.pkl", "wb") as out:
-        pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
-    with open("callback.pkl", "wb") as out:
-        pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
+
+    if USER == 'Emily':
+        if RUN_LOCAL:
+            with open("result.pkl", "wb") as out:
+                pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+
+            with open("callback.pkl", "wb") as out:
+                pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
+        else:
+            with open("/scratch/tmp/m_ster15/result.pkl", "wb") as out:
+                pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+
+            with open("/scratch/tmp/m_ster15/callback.pkl", "wb") as out:
+                pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
+    elif USER == 'Josefina':
+        #Todo: Pfade anpassen
+        if RUN_LOCAL:
+            with open("result.pkl", "wb") as out:
+                pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+
+            with open("callback.pkl", "wb") as out:
+                pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
+        else:
+            with open("/result.pkl", "wb") as out:
+                pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+
+            with open("/callback.pkl", "wb") as out:
+                pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
 
     # Pymoo scatter
-    Scatter().add(res.F).show()
+    #Scatter().add(res.F).show()
 
 
 if __name__ == "__main__":

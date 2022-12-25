@@ -52,7 +52,7 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
     def __init__(self, **kwargs):
         # super().__init__(n_var=gdf_optimization.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0, xu=1.0)
         if repair_mode:
-            super().__init__(n_var=points.shape[0], n_obj=1, n_ieq_constr=1, xl=0.0,
+            super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0,
                              xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
         else:
             super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=1, xl=0.0,
@@ -67,17 +67,18 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             x[x1] = False
 
         for combination in combs:
-            WKA1 = points[combination[0]]
-            WKA2 = points[combination[1]]
-            WKA1_type = WKAs[WKA1[0]]
-            WKA2_type = WKAs[WKA2[0]]
-            d = WKA1[1].distance(WKA2[1])
-            if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d and combination[0] and combination[1]:
-                if repair_mode:
-                    repair(combination[0], combination[1])
-                else:
-                    constraints_np = 1
-                    break
+            if combination[0] and combination[1]:
+                WKA1 = points[combination[0]]
+                WKA2 = points[combination[1]]
+                WKA1_type = WKAs[WKA1[0]]
+                WKA2_type = WKAs[WKA2[0]]
+                d = WKA1[1].distance(WKA2[1])
+                if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
+                    if repair_mode:
+                        repair(combination[0], combination[1])
+                    else:
+                        constraints_np = 1
+                        break
 
         vals = np.where(x, points[:, 0], "")
 
@@ -116,7 +117,8 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
         vals__sum = np.sum(vals_)
 
         out["F"] = np.column_stack([vals_sum, vals__sum])
-        out["G"] = np.asarray([constraints_np])
+        if repair_mode:
+            out["G"] = np.asarray([constraints_np])
 
 
 class MyCallback(Callback):

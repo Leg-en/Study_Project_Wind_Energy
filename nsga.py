@@ -11,19 +11,14 @@ from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 import multiprocessing
 from pymoo.core.problem import StarmapParallelization
-from pymoo.visualization.scatter import Scatter
-from pymoo.core.repair import Repair
-from pymoo.operators.crossover.ux import UniformCrossover
-from pymoo.algorithms.soo.nonconvex.ga import GA
-from multiprocessing import Pool
 
 repair_mode = True
 
-cell_size = 500
+cell_size = 100
 
 # Pfade müssen angepasst werden
 USER = 'Emily'
-RUN_LOCAL = True
+RUN_LOCAL = False
 if USER == 'Emily':
     if RUN_LOCAL:
         points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
@@ -39,6 +34,7 @@ elif USER == 'Josefina':
         points_path = fr"/scratch/tmp/jbalzer/Study_Project/data/points_{cell_size}.npy"
         WKA_data_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
 
+
 with open(points_path, "rb") as f:
     points = np.load(f, allow_pickle=True)
 with open(WKA_data_path, "r") as f:
@@ -48,78 +44,28 @@ WKAs = {}
 for wka in WKA_data["turbines"]:
     WKAs[wka["type"].replace(" ", "_")] = wka
 
-
-# print("Daten geladen und bereit")
-
-
-# https://pymoo.org/constraints/repair.html
-class CustomRepair(Repair):
-
-    def repair_mp(self, item):
-        row = item[1]
-        idx = item[0]
-        indices = np.where(row)[0]
-        combs = combinations(indices, 2)
-        for combination in combs:
-            if combination[0] and combination[1]:
-                WKA1 = points[combination[0]]
-                WKA2 = points[combination[1]]
-                WKA1_type = WKAs[WKA1[0]]
-                WKA2_type = WKAs[WKA2[0]]
-                d = WKA1[1].distance(WKA2[1])
-                if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
-                    row[combination[0]] = False
-        return (idx, row)
-
-    def _do(self, problem, X, **kwargs):
-
-        # if X.shape[0] >= 8:
-        #     pool_size = 8
-        # else:
-        #     pool_size = 2
-
-        row_gen = (x for x in X)
-        indices = np.arange(X.shape[0])
-
-        res = pool.map(self.repair_mp, zip(row_gen, indices))
-        res.sort(key=lambda elem: elem[1])
-        for idx, item in enumerate(res):
-            X[idx, :] = item[0]
-        return X
-
-        # for row in range(X.shape[0]):
-        #     indices = np.where(X[row])[0]
-        #     combs = combinations(indices, 2)
-        #     for combination in combs:
-        #         if combination[0] and combination[1]:
-        #             WKA1 = points[combination[0]]
-        #             WKA2 = points[combination[1]]
-        #             WKA1_type = WKAs[WKA1[0]]
-        #             WKA2_type = WKAs[WKA2[0]]
-        #             d = WKA1[1].distance(WKA2[1])
-        #             if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
-        #                 X[row, combination[0]] = False
-        # return X
+print("Daten geladen und bereit")
 
 
 class WindEnergySiteSelectionProblem(ElementwiseProblem):
 
     def __init__(self, **kwargs):
-        super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=1, xl=0.0,
-                         xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
         # super().__init__(n_var=gdf_optimization.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0, xu=1.0)
-        # if repair_mode:
-        #     super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0,
-        #                      xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
-        # else:
-        #     super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=1, xl=0.0,
-        #                      xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
+        if repair_mode:
+            super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0,
+                             xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
+        else:
+            super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=1, xl=0.0,
+                             xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
 
     def _evaluate(self, x, out, *args, **kwargs):
         indices = np.where(x)[0]
         combs = combinations(indices, 2)
         constraints_np = -1
 
+        def repair(x1, x2):
+            x[x1] = False
+
         for combination in combs:
             if combination[0] and combination[1]:
                 WKA1 = points[combination[0]]
@@ -128,7 +74,11 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
                 WKA2_type = WKAs[WKA2[0]]
                 d = WKA1[1].distance(WKA2[1])
                 if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
-                    constraints_np = 1
+                    if repair_mode:
+                        repair(combination[0], combination[1])
+                    else:
+                        constraints_np = 1
+                        break
 
         vals = np.where(x, points[:, 0], "")
 
@@ -157,8 +107,7 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             if item == "":
                 continue
             nominal_power = WKAs[item]["nominal_power_in_kW"]
-            lifetime_hours = WKAs[item][
-                                 "life_expectancy_in_years"] * 8760  # Laut google ist 1 Jahr 8760 stunden # trifft nicht auf schaltjahre zu. Dort sind es 8784
+            lifetime_hours = WKAs[item]["life_expectancy_in_years"] * 8760  # Laut google ist 1 Jahr 8760 stunden # trifft nicht auf schaltjahre zu. Dort sind es 8784
             kwh = nominal_power * lifetime_hours
             type_energy[item] = kwh
 
@@ -166,10 +115,10 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             vals_[vals_ == key] = value
         vals_[vals_ == ""] = 0
         vals__sum = np.sum(vals_)
-        vals__sum = -vals__sum
 
         out["F"] = np.column_stack([vals_sum, vals__sum])
-        out["G"] = np.asarray([constraints_np])
+        if !repair_mode:
+            out["G"] = np.asarray([constraints_np])
 
 
 class MyCallback(Callback):
@@ -183,65 +132,59 @@ class MyCallback(Callback):
 
 
 def main():
-    global pool
-    # Todo: Population Size und Iterationsanzahl passend wählen
-    try:
-        pool = Pool(8)
-        algorithm = NSGA2(pop_size=100,
-                          sampling=BinaryRandomSampling(),
-                          crossover=TwoPointCrossover(),
-                          mutation=BitflipMutation(),
-                          eliminate_duplicates=True,
-                          repair=CustomRepair())
+    #Todo: Population Size und Iterationsanzahl passend wählen
+    algorithm = NSGA2(pop_size=100,
+                      sampling=BinaryRandomSampling(),
+                      crossover=TwoPointCrossover(),
+                      mutation=BitflipMutation(),
+                      eliminate_duplicates=True)
 
-        # n_proccess = 8
-        # pool = multiprocessing.Pool(n_proccess)
-        # runner = StarmapParallelization(pool.starmap)
-        #
-        # problem = WindEnergySiteSelectionProblem(elementwise_runner=runner)
-        problem = WindEnergySiteSelectionProblem()
-        callback = MyCallback()
-        res = minimize(problem,
-                       algorithm,
-                       callback=callback,
-                       termination=('n_gen', 100),
-                       seed=1,
-                       verbose=True)
+    n_proccess = 71
+    pool = multiprocessing.Pool(n_proccess)
+    runner = StarmapParallelization(pool.starmap)
 
-        if USER == 'Emily':
-            if RUN_LOCAL:
-                with open("result2.pkl", "wb") as out:
-                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+    problem = WindEnergySiteSelectionProblem(elementwise_runner=runner)
+    #problem = WindEnergySiteSelectionProblem()
+    callback = MyCallback()
+    res = minimize(problem,
+                   algorithm,
+                   callback=callback,
+                   termination=('n_gen', 100),
+                   seed=1,
+                   verbose=True)
 
-                with open("callback2.pkl", "wb") as out:
-                    pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
-            else:
-                with open("/scratch/tmp/m_ster15/result.pkl", "wb") as out:
-                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
-                with open("/scratch/tmp/m_ster15/callback.pkl", "wb") as out:
-                    pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
-        elif USER == 'Josefina':
-            # Todo: Pfade anpassen
-            if RUN_LOCAL:
-                with open("result.pkl", "wb") as out:
-                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
-                with open("callback.pkl", "wb") as out:
-                    pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
-            else:
-                with open("/result.pkl", "wb") as out:
-                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
-
-                with open("/callback.pkl", "wb") as out:
-                    pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
-
-        # Pymoo scatter
+    if USER == 'Emily':
         if RUN_LOCAL:
-            Scatter().add(res.F).show()
-    except:
-        pool.close()
+            with open("result.pkl", "wb") as out:
+                pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
+            with open("callback.pkl", "wb") as out:
+                pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
+        else:
+            with open("/scratch/tmp/m_ster15/result.pkl", "wb") as out:
+                pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+
+            with open("/scratch/tmp/m_ster15/callback.pkl", "wb") as out:
+                pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
+    elif USER == 'Josefina':
+        #Todo: Pfade anpassen
+        if RUN_LOCAL:
+            with open("result.pkl", "wb") as out:
+                pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+
+            with open("callback.pkl", "wb") as out:
+                pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
+        else:
+            with open("/result.pkl", "wb") as out:
+                pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+
+            with open("/callback.pkl", "wb") as out:
+                pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
+
+    # Pymoo scatter
+    #Scatter().add(res.F).show()
 
 
 if __name__ == "__main__":

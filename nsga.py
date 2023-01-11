@@ -171,16 +171,16 @@ def main():
     elif USER == 'Josefina':
         #Todo: Pfade anpassen
         if RUN_LOCAL:
-            with open("result.pkl", "wb") as out:
+            with open("/data/result.pkl", "wb") as out:
                 pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
-            with open("callback.pkl", "wb") as out:
+            with open("/data/callback.pkl", "wb") as out:
                 pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
         else:
-            with open("/result.pkl", "wb") as out:
+            with open("/scratch/tmp/jbalzer/result.pkl", "wb") as out:
                 pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
-            with open("/callback.pkl", "wb") as out:
+            with open("/scratch/tmp/jbalzer/callback.pkl", "wb") as out:
                 pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
 
     # Pymoo scatter

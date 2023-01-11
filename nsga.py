@@ -117,7 +117,7 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
         vals__sum = np.sum(vals_)
 
         out["F"] = np.column_stack([vals_sum, vals__sum])
-        if !repair_mode:
+        if not repair_mode:
             out["G"] = np.asarray([constraints_np])
 
 

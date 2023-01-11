@@ -11,20 +11,29 @@ from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 import multiprocessing
 from pymoo.core.problem import StarmapParallelization
+from pymoo.visualization.scatter import Scatter
 
 repair_mode = True
+reduced = True #Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
+RUN_LOCAL = False
 
 cell_size = 100
 
 # Pfade müssen angepasst werden
 USER = 'Emily'
-RUN_LOCAL = False
+
 if USER == 'Emily':
     if RUN_LOCAL:
-        points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
+        if reduced:
+            points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_reduced\numpy_array\points_{cell_size}.npy"
+        else:
+            points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
         WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
     else:
-        points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}.npy"
+        if reduced:
+            points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}_reduced.npy"
+        else:
+            points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}.npy"
         WKA_data_path = r"/home/m/m_ster15/WindEnergy/base_information_enercon_reformatted.json"
 elif USER == 'Josefina':
     if RUN_LOCAL:
@@ -45,6 +54,7 @@ for wka in WKA_data["turbines"]:
     WKAs[wka["type"].replace(" ", "_")] = wka
 
 print("Daten geladen und bereit")
+print(f"{points.shape[0]} Punkte werden Prozessiert")
 
 
 class WindEnergySiteSelectionProblem(ElementwiseProblem):
@@ -139,12 +149,12 @@ def main():
                       mutation=BitflipMutation(),
                       eliminate_duplicates=True)
 
-    n_proccess = 71
-    pool = multiprocessing.Pool(n_proccess)
-    runner = StarmapParallelization(pool.starmap)
+    #n_proccess = 8
+    #pool = multiprocessing.Pool(n_proccess)
+    #runner = StarmapParallelization(pool.starmap)
 
-    problem = WindEnergySiteSelectionProblem(elementwise_runner=runner)
-    #problem = WindEnergySiteSelectionProblem()
+    #problem = WindEnergySiteSelectionProblem(elementwise_runner=runner)
+    problem = WindEnergySiteSelectionProblem()
     callback = MyCallback()
     res = minimize(problem,
                    algorithm,
@@ -184,8 +194,10 @@ def main():
                 pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
 
     # Pymoo scatter
-    #Scatter().add(res.F).show()
+    if RUN_LOCAL:
+        Scatter().add(res.F).show()
 
 
 if __name__ == "__main__":
+    print("Main Started...")
     main()

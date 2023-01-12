@@ -3,11 +3,11 @@
 #SBATCH --job-name=WindEnergyProject # The job name # CHANGE
 #SBATCH --export=NONE               # Start with a clean environment
 #SBATCH --nodes=1                   # the number of nodes you want to reserve
-#SBATCH --ntasks-per-node=72
+#SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1      # CHANGE
-#SBATCH --mem=500G           # how much memory is needed per node (units can be: K, M, G, T) # CHANGE
-#SBATCH --partition=bigsmp   # on which partition to submit the job # CHANGE
-#SBATCH --time=02:00:00             # the max wallclock time (time limit your job will run) # CHANGE
+#SBATCH --mem=5G           # how much memory is needed per node (units can be: K, M, G, T) # CHANGE
+#SBATCH --partition=normal   # on which partition to submit the job # CHANGE
+#SBATCH --time=24:00:00             # the max wallclock time (time limit your job will run) # CHANGE
 #SBATCH --output=output.dat   # the file where output is written to (stdout & stderr) # CHANGE
 #SBATCH --mail-type=ALL            # receive an email when your job starts, finishes normally or is aborted
 #SBATCH --mail-user=m_ster15@uni-muenster.de # your mail address # CHANGE
@@ -19,7 +19,7 @@ module load palma/2021a Miniconda3/4.9.2 # CHANGE
 CONDA_BASE=$(conda info --base)
 source $CONDA_BASE/etc/profile.d/conda.sh
 conda deactivate
-conda activate WindEnergy # CHANGE
+conda activate WindEnergy_3_8 # CHANGE #Alternativen: WindEnergy_3_8 WindEnergy
 
 
-srun --export=ALL python3 nsga.py  # CHANGE
+srun --export=ALL python3 nsga.py   # CHANGE

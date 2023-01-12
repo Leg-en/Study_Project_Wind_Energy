@@ -12,9 +12,11 @@ from pymoo.optimize import minimize
 import multiprocessing
 from pymoo.core.problem import StarmapParallelization
 from pymoo.visualization.scatter import Scatter
+import logging
+import sys
 
 repair_mode = True
-reduced = True #Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
+reduced = True  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
 RUN_LOCAL = False
 
 cell_size = 100
@@ -43,7 +45,6 @@ elif USER == 'Josefina':
         points_path = fr"/scratch/tmp/jbalzer/Study_Project/data/points_{cell_size}.npy"
         WKA_data_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
 
-
 with open(points_path, "rb") as f:
     points = np.load(f, allow_pickle=True)
 with open(WKA_data_path, "r") as f:
@@ -52,9 +53,6 @@ with open(WKA_data_path, "r") as f:
 WKAs = {}
 for wka in WKA_data["turbines"]:
     WKAs[wka["type"].replace(" ", "_")] = wka
-
-print("Daten geladen und bereit")
-print(f"{points.shape[0]} Punkte werden Prozessiert")
 
 
 class WindEnergySiteSelectionProblem(ElementwiseProblem):
@@ -117,7 +115,8 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
             if item == "":
                 continue
             nominal_power = WKAs[item]["nominal_power_in_kW"]
-            lifetime_hours = WKAs[item]["life_expectancy_in_years"] * 8760  # Laut google ist 1 Jahr 8760 stunden # trifft nicht auf schaltjahre zu. Dort sind es 8784
+            lifetime_hours = WKAs[item][
+                                 "life_expectancy_in_years"] * 8760  # Laut google ist 1 Jahr 8760 stunden # trifft nicht auf schaltjahre zu. Dort sind es 8784
             kwh = nominal_power * lifetime_hours
             type_energy[item] = kwh
 
@@ -138,24 +137,46 @@ class MyCallback(Callback):
         self.off = {}
 
     def notify(self, algorithm):
+        logging.info("Callbackk Call")
         self.off[algorithm.n_gen] = algorithm
 
 
 def main():
-    #Todo: Population Size und Iterationsanzahl passend wählen
+    if USER == "Emily":
+        if RUN_LOCAL:
+            logging.basicConfig(filename="WindEnergy.log",
+                                level=logging.DEBUG)
+        else:
+            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
+                                level=logging.DEBUG)
+    if USER == "Josefina":
+        # Todo: Pfade anpassen
+        if RUN_LOCAL:
+            logging.basicConfig(filename="WindEnergy.log",
+                                level=logging.DEBUG)
+        else:
+            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
+                                level=logging.DEBUG)
+    sys.stderr.write = logging.error
+    sys.stdout.write = logging.info
+
+    logging.info("Daten geladen und bereit")
+    logging.info(f"{points.shape[0]} Punkte werden Prozessiert")
+    # Todo: Population Size und Iterationsanzahl passend wählen
     algorithm = NSGA2(pop_size=100,
                       sampling=BinaryRandomSampling(),
                       crossover=TwoPointCrossover(),
                       mutation=BitflipMutation(),
                       eliminate_duplicates=True)
 
-    #n_proccess = 8
-    #pool = multiprocessing.Pool(n_proccess)
-    #runner = StarmapParallelization(pool.starmap)
+    # n_proccess = 8
+    # pool = multiprocessing.Pool(n_proccess)
+    # runner = StarmapParallelization(pool.starmap)
 
-    #problem = WindEnergySiteSelectionProblem(elementwise_runner=runner)
+    # problem = WindEnergySiteSelectionProblem(elementwise_runner=runner)
     problem = WindEnergySiteSelectionProblem()
     callback = MyCallback()
+    logging.info("Starte Minimierung")
     res = minimize(problem,
                    algorithm,
                    callback=callback,
@@ -163,7 +184,7 @@ def main():
                    seed=1,
                    verbose=True)
 
-
+    logging.info("Minimierung Abgeschlossen")
 
     if USER == 'Emily':
         if RUN_LOCAL:
@@ -179,7 +200,7 @@ def main():
             with open("/scratch/tmp/m_ster15/callback.pkl", "wb") as out:
                 pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
     elif USER == 'Josefina':
-        #Todo: Pfade anpassen
+        # Todo: Pfade anpassen
         if RUN_LOCAL:
             with open("/data/result.pkl", "wb") as out:
                 pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
@@ -192,12 +213,13 @@ def main():
 
             with open("/scratch/tmp/jbalzer/callback.pkl", "wb") as out:
                 pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
+    logging.info("Speichern Abgeschlossen")
 
     # Pymoo scatter
     if RUN_LOCAL:
         Scatter().add(res.F).show()
+    logging.info("Programm Terminiert..")
 
 
 if __name__ == "__main__":
-    print("Main Started...")
     main()

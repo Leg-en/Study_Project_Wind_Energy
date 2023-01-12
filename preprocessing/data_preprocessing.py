@@ -11,9 +11,9 @@ from tqdm import tqdm
 from glob import glob
 
 # Hier entsprechend eigene Pfade (/Variablen) Setzen
-cell_size = 20
-WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
-processed_data = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_" + str(cell_size) + "cell_size"
+cell_size = 100
+WKA_data_path = r"/base_information_enercon_reformatted.json"
+processed_data = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_" + str(cell_size) + "cell_size_reduced"
 
 with open(WKA_data_path, "r") as f:
     WKA_data = json.load(f)
@@ -32,7 +32,7 @@ os.mkdir(numpy_array)
 
 # flurstuecke = r"flurstuecke.shp"
 flurstuecke = r"C:\workspace\MasterSemester1\WindEnergy\Project\ArcGIS Project\WindEnergy.gdb\Flurstuecke_Area_Intersect"
-potential_areas = r"potential_areas_lpa_400m.shp"
+potential_areas = r"potential_areas_reduced.shp" #Reduziert: potential_areas_reduced Vollständig: potential_areas_lpa_400m
 hausumringe = r"hausumringe.shp"
 wege = r"strassen_und_wege.shp"
 

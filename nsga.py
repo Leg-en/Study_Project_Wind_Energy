@@ -14,15 +14,19 @@ from pymoo.core.problem import StarmapParallelization
 from pymoo.visualization.scatter import Scatter
 import logging
 import sys
+from pymoo.core.repair import Repair
+
 
 repair_mode = True
 reduced = True  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
 RUN_LOCAL = False
 
 cell_size = 100
+timeString = "00:00:03"
 
 # Pfade müssen angepasst werden
 USER = 'Emily'
+
 
 if USER == 'Emily':
     if RUN_LOCAL:
@@ -177,10 +181,11 @@ def main():
     problem = WindEnergySiteSelectionProblem()
     callback = MyCallback()
     logging.info("Starte Minimierung")
+    termination = get_termination("time", timeString)
     res = minimize(problem,
                    algorithm,
                    callback=callback,
-                   termination=('n_gen', 100),
+                   termination=termination,
                    seed=1,
                    verbose=True)
 

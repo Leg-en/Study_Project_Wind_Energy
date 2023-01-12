@@ -145,18 +145,18 @@ def main():
     if USER == "Emily":
         if RUN_LOCAL:
             logging.basicConfig(filename="WindEnergy.log",
-                                level=logging.DEBUG)
+                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         else:
             logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
-                                level=logging.DEBUG)
+                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     if USER == "Josefina":
         # Todo: Pfade anpassen
         if RUN_LOCAL:
             logging.basicConfig(filename="WindEnergy.log",
-                                level=logging.DEBUG)
+                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         else:
             logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
-                                level=logging.DEBUG)
+                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     sys.stderr.write = logging.error
     sys.stdout.write = logging.info
 

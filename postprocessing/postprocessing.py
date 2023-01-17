@@ -15,55 +15,6 @@ from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
 
-# from pymoo.termination import get_termination
-
-
-reduced = False  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
-RUN_LOCAL = False
-POOL_SIZE = 10
-SMART_REPAIR = True
-
-cell_size = 100
-timeString = "03:50:00"
-
-# Pfade müssen angepasst werden
-USER = 'Emily'
-
-if USER == 'Emily':
-    if RUN_LOCAL:
-        if reduced:
-            points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_reduced\numpy_array\points_{cell_size}.npy"
-        else:
-            points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
-        WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
-    else:
-        if reduced:
-            points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}_reduced.npy"
-        else:
-            points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}.npy"
-        WKA_data_path = r"/home/m/m_ster15/WindEnergy/base_information_enercon_reformatted.json"
-elif USER == 'Josefina':
-    if RUN_LOCAL:
-        points_path = fr"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_{cell_size}.npy"
-        WKA_data_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
-    else:
-        points_path = fr"/scratch/tmp/jbalzer/Study_Project/data/points_{cell_size}.npy"
-        WKA_data_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
-
-with open(points_path, "rb") as f:
-    points = np.load(f, allow_pickle=True)
-with open(WKA_data_path, "r") as f:
-    WKA_data = json.load(f)
-
-WKAs = {}
-for wka in WKA_data["turbines"]:
-    WKAs[wka["type"].replace(" ", "_")] = wka
-
-
-# print("Daten geladen und bereit")
-
-
-# https://pymoo.org/constraints/repair.html
 class CustomRepair(Repair):
 
     # Checkt welche elemente die meisten kollisionen verursachen und deaktiviert diese
@@ -216,84 +167,8 @@ class WindEnergySiteSelectionProblem(Problem):
         out["G"] = np.asarray([constraints_np])
 
 
+
 def main():
-    global pool
-
-    if USER == "Emily":
-        if RUN_LOCAL:
-            logging.basicConfig(filename="WindEnergy.log",
-                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-        else:
-            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
-                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-    if USER == "Josefina":
-        # Todo: Pfade anpassen
-        if RUN_LOCAL:
-            logging.basicConfig(filename="WindEnergy.log",
-                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-        else:
-            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
-                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-    # sys.stderr.write = logging.error
-    sys.stdout.write = logging.info
-
-    logging.info("Daten geladen und bereit")
-    logging.info(f"{points.shape[0]} Punkte werden Prozessiert")
-
-    # Todo: Population Size und Iterationsanzahl passend wählen
-    try:
-        pool = Pool(POOL_SIZE)
-        algorithm = NSGA2(pop_size=100,
-                          sampling=BinaryRandomSampling(),
-                          crossover=TwoPointCrossover(), #Evtl uniformcrossover probieren from pymoo.operators.crossover.ux import UniformCrossover
-                          mutation=BitflipMutation(),
-                          eliminate_duplicates=True,
-                          repair=CustomRepair())
-
-        problem = WindEnergySiteSelectionProblem()
-        logging.info("Starte Minimierung")
-        # termination = get_termination("time", timeString)
-        # termination = get_termination("n_gen", 100)
-        res = minimize(problem,
-                       algorithm,
-                       termination=('n_gen', 100),
-                       seed=1,
-                       verbose=True,
-                       save_history=True)
-
-        logging.info("Minimierung Abgeschlossen")
-
-        if USER == 'Emily':
-            if RUN_LOCAL:
-                with open("result2.pkl", "wb") as out:
-                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
-            else:
-                with open("/home/m/m_ster15/WindEnergy/result.pkl", "wb") as out:
-                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
-
-        elif USER == 'Josefina':
-            # Todo: Pfade anpassen
-            if RUN_LOCAL:
-                with open("result.pkl", "wb") as out:
-                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
-
-            else:
-                with open("/result.pkl", "wb") as out:
-                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
-
-        logging.info("Speichern Abgeschlossen")
-
-        # Pymoo scatter
-        if RUN_LOCAL:
-            Scatter().add(res.F).show()
-        pool.close()
-        logging.info("Programm Terminiert..")
-    except Exception as exc:
-        pool.close()
-        logging.info("Unbekannte Exception")
-        logging.error(exc.with_traceback())
-        raise exc
-
-
-if __name__ == "__main__":
-    main()
+    with open(r"PATH", "rb") as file:
+        res = pickle.load(file)
+    res.X

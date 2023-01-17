@@ -18,7 +18,7 @@ from pymoo.visualization.scatter import Scatter
 # from pymoo.termination import get_termination
 
 
-reduced = False  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
+reduced = True  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
 RUN_LOCAL = False
 POOL_SIZE = 10
 SMART_REPAIR = True
@@ -92,11 +92,11 @@ class CustomRepair(Repair):
         colls_sorted = dict(sorted(collisions.items(), key=lambda elem: len(elem)))
         collisions = None
         del collisions
-        for key in colls_sorted.keys():
+        for key in colls_sorted.copy().keys():
             if key in colls_sorted:
                 row[key] = False
                 colls_sorted.pop(key, None)
-                for subkey in colls_sorted.keys():
+                for subkey in colls_sorted.copy().keys():
                     if subkey in colls_sorted:
                         if key in colls_sorted[subkey]:
                             colls_sorted[subkey].remove(key)
@@ -224,7 +224,7 @@ def main():
             logging.basicConfig(filename="WindEnergy.log",
                                 level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         else:
-            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
+            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy2.log",
                                 level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     if USER == "Josefina":
         # Todo: Pfade anpassen
@@ -256,7 +256,7 @@ def main():
         # termination = get_termination("n_gen", 100)
         res = minimize(problem,
                        algorithm,
-                       termination=('n_gen', 100),
+                       ('n_gen', 100),
                        seed=1,
                        verbose=True,
                        save_history=True)
@@ -268,7 +268,7 @@ def main():
                 with open("result2.pkl", "wb") as out:
                     pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
             else:
-                with open("/home/m/m_ster15/WindEnergy/result.pkl", "wb") as out:
+                with open("/home/m/m_ster15/WindEnergy/result2.pkl", "wb") as out:
                     pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
         elif USER == 'Josefina':
@@ -290,8 +290,8 @@ def main():
         logging.info("Programm Terminiert..")
     except Exception as exc:
         pool.close()
-        logging.info("Unbekannte Exception")
-        logging.error(exc.with_traceback())
+        logging.error("Unbekannte Exception")
+        logging.error(exc)
         raise exc
 
 

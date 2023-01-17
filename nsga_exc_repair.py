@@ -68,6 +68,42 @@ for wka in WKA_data["turbines"]:
 # https://pymoo.org/constraints/repair.html
 class CustomRepair(Repair):
 
+    # Checkt welche elemente die meisten kollisionen verursachen und deaktiviert diese
+    def smart_repair(self, item):
+        row = item[0]
+        idx = item[1]
+        indices = np.where(row)[0]
+        combs = combinations(indices, 2)
+        collisions = {}
+        for combination in combs:
+            if combination[0] and combination[1]:
+                WKA1 = points[combination[0]]
+                WKA2 = points[combination[1]]
+                WKA1_type = WKAs[WKA1[0]]
+                WKA2_type = WKAs[WKA2[0]]
+                d = WKA1[1].distance(WKA2[1])
+                if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
+                    if combination[0] in collisions:
+                        collisions[combination[0]].append(combination[1])
+                    else:
+                        collisions[combination[0]] = [combination[1]]
+                    if combination[1] in collisions:
+                        collisions[combination[1]].append(combination[0])
+                    else:
+                        collisions[combination[1]] = [combination[0]]
+        colls_sorted = dict(sorted(collisions.items(), key=lambda elem: len(elem)))
+        for key in colls_sorted.keys():
+            if key in colls_sorted:
+                row[key] = False
+                colls_sorted.pop(key, None)
+                for subkey in colls_sorted.keys():
+                    if subkey in colls_sorted:
+                        if key in colls_sorted[subkey]:
+                            colls_sorted[subkey].remove(key)
+                            if len(colls_sorted[subkey]) == 0:
+                                colls_sorted.pop(subkey, None)
+        return (idx, row)
+
     def repair_mp(self, item):
         row = item[0]
         idx = item[1]

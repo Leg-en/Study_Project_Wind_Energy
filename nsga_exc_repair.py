@@ -22,6 +22,9 @@ reduced = True  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinati
 RUN_LOCAL = False
 POOL_SIZE = 10
 SMART_REPAIR = True
+PROFIT_FIVE_YEARS = 7.79 # Angabe in ct pro kW/h für die ersten 5 Jahre nach Installation
+PROFIT_LATER_YEARS = 7.79 # Angabe in ct pro kW/h nach den ersten 5 Jahren nach Installation
+
 
 cell_size = 100
 timeString = "03:50:00"

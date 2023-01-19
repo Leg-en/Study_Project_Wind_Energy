@@ -15,18 +15,17 @@ from pymoo.visualization.scatter import Scatter
 import logging
 import sys
 from pymoo.core.repair import Repair
-
+from pymoo.termination import get_termination
 
 repair_mode = True
 reduced = True  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
 RUN_LOCAL = False
 
 cell_size = 100
-timeString = "00:00:03"
+timeString = "23:50:00"
 
 # Pfade müssen angepasst werden
 USER = 'Emily'
-
 
 if USER == 'Emily':
     if RUN_LOCAL:
@@ -34,7 +33,7 @@ if USER == 'Emily':
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_reduced\numpy_array\points_{cell_size}.npy"
         else:
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
-        WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
+        WKA_data_path = r"/base_information_enercon_reformatted.json"
     else:
         if reduced:
             points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}_reduced.npy"
@@ -148,7 +147,7 @@ class MyCallback(Callback):
 def main():
     if USER == "Emily":
         if RUN_LOCAL:
-            logging.basicConfig(filename="WindEnergy.log",
+            logging.basicConfig(filename="../Results/Reduced Area Repair Excluded/WindEnergy.log",
                                 level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         else:
             logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
@@ -156,7 +155,7 @@ def main():
     if USER == "Josefina":
         # Todo: Pfade anpassen
         if RUN_LOCAL:
-            logging.basicConfig(filename="WindEnergy.log",
+            logging.basicConfig(filename="../Results/Reduced Area Repair Excluded/WindEnergy.log",
                                 level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         else:
             logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
@@ -173,12 +172,12 @@ def main():
                       mutation=BitflipMutation(),
                       eliminate_duplicates=True)
 
-    # n_proccess = 8
-    # pool = multiprocessing.Pool(n_proccess)
-    # runner = StarmapParallelization(pool.starmap)
+    n_proccess = 9
+    pool = multiprocessing.Pool(n_proccess)
+    runner = StarmapParallelization(pool.starmap)
 
-    # problem = WindEnergySiteSelectionProblem(elementwise_runner=runner)
-    problem = WindEnergySiteSelectionProblem()
+    problem = WindEnergySiteSelectionProblem(elementwise_runner=runner)
+    # problem = WindEnergySiteSelectionProblem()
     callback = MyCallback()
     logging.info("Starte Minimierung")
     termination = get_termination("time", timeString)

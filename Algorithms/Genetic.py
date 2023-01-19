@@ -4,7 +4,7 @@ import pickle
 import sys
 from itertools import combinations
 from multiprocessing import Pool
-
+from pymoo.algorithms.soo.nonconvex.ga import GA
 import numpy as np
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.core.problem import Problem
@@ -14,7 +14,7 @@ from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
-
+import matplotlib.pyplot as plt
 # from pymoo.termination import get_termination
 
 
@@ -22,11 +22,12 @@ reduced = True  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinati
 RUN_LOCAL = False
 POOL_SIZE = 10
 SMART_REPAIR = True
+
+strompreis = 0.10
+#Todo, angepasste zahlen nutzen
 PROFIT_FIVE_YEARS = 7.79 # Angabe in ct pro kW/h für die ersten 5 Jahre nach Installation
-PROFIT_LATER_YEARS = 7.79 # Angabe in ct pro kW/h nach den ersten 5 Jahren nach Installation
-
-
-cell_size = 100 # maybe we could change this to 50
+PROFIT_LATER_YEARS = 4.25 # Angabe in ct pro kW/h nach den ersten 5 Jahren nach Installation
+cell_size = 100
 timeString = "03:50:00"
 
 # Pfade müssen angepasst werden
@@ -38,7 +39,7 @@ if USER == 'Emily':
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_reduced\numpy_array\points_{cell_size}.npy"
         else:
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
-        WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
+        WKA_data_path = r"/base_information_enercon_reformatted.json"
     else:
         if reduced:
             points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}_reduced.npy"
@@ -142,7 +143,7 @@ class CustomRepair(Repair):
 class WindEnergySiteSelectionProblem(Problem):
 
     def __init__(self, **kwargs):
-        super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=1, xl=0.0,
+        super().__init__(n_var=points.shape[0], n_obj=1, n_ieq_constr=1, xl=0.0,
                          xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
 
     def const_check(self, item):
@@ -174,8 +175,7 @@ class WindEnergySiteSelectionProblem(Problem):
         for idx, item in res:
             constraints_np[idx] = item
 
-
-        #Ab hier werden die kosten berechnet
+        # Ab hier werden die kosten berechnet
         vals = np.where(X, points[:, 0], "")
 
         uniques, count = np.unique(vals, return_counts=True)
@@ -194,7 +194,7 @@ class WindEnergySiteSelectionProblem(Problem):
         vals[vals == ""] = 0
         vals_sum = np.sum(vals, axis=1)
 
-        #Ab hier wird die energie produktion berechnet
+        # Ab hier wird die energie produktion berechnet
         # Grundlage für Energieberechnung https://www.energie-lexikon.info/megawattstunde.html
         vals_ = np.where(X, points[:, 0], "")
         uniques, count = np.unique(vals_, return_counts=True)
@@ -213,9 +213,10 @@ class WindEnergySiteSelectionProblem(Problem):
             vals_[vals_ == key] = value
         vals_[vals_ == ""] = 0
         vals__sum = np.sum(vals_, axis=1)
-        vals__sum = -vals__sum
-
-        out["F"] = np.column_stack([vals_sum, vals__sum])
+        vals__sum = vals__sum * strompreis
+        result = vals__sum - vals_sum
+        result = -result
+        out["F"] = result
         out["G"] = np.asarray([constraints_np])
 
 
@@ -227,7 +228,7 @@ def main():
             logging.basicConfig(filename="WindEnergy.log",
                                 level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         else:
-            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy2.log",
+            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy_ga.log",
                                 level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     if USER == "Josefina":
         # Todo: Pfade anpassen
@@ -246,12 +247,13 @@ def main():
     # Todo: Population Size und Iterationsanzahl passend wählen
     try:
         pool = Pool(POOL_SIZE)
-        algorithm = NSGA2(pop_size=100,
-                          sampling=BinaryRandomSampling(),
-                          crossover=TwoPointCrossover(), #Evtl uniformcrossover probieren from pymoo.operators.crossover.ux import UniformCrossover
-                          mutation=BitflipMutation(),
-                          eliminate_duplicates=True,
-                          repair=CustomRepair())
+        algorithm = GA(pop_size=100,
+                       sampling=BinaryRandomSampling(),
+                       crossover=TwoPointCrossover(),
+                       # Evtl uniformcrossover probieren from pymoo.operators.crossover.ux import UniformCrossover
+                       mutation=BitflipMutation(),
+                       eliminate_duplicates=True,
+                       repair=CustomRepair())
 
         problem = WindEnergySiteSelectionProblem()
         logging.info("Starte Minimierung")
@@ -271,7 +273,7 @@ def main():
                 with open("result2.pkl", "wb") as out:
                     pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
             else:
-                with open("/home/m/m_ster15/WindEnergy/result2.pkl", "wb") as out:
+                with open("/home/m/m_ster15/WindEnergy/result_ga.pkl", "wb") as out:
                     pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
         elif USER == 'Josefina':
@@ -300,3 +302,21 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def plot(res):
+    fitness_vals = []
+
+    for iteration in res.history:
+        x = []
+        for item in iteration.pop:
+            x.append(item.F[0])
+        fitness_vals.append(x)
+    np_fitness = np.asarray(fitness_vals)
+
+    # Manual Scotter
+    plot_val = [1, 10, 30, 50]
+    for i in plot_val:
+        plt.scatter(np_fitness[i], np.zeros(len(np_fitness[i])))
+    # plt.scatter(res.F[:, 0], res.F[:, 1])
+    plt.show()

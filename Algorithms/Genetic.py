@@ -84,7 +84,7 @@ class CustomRepair(Repair):
                 WKA1_type = WKAs[WKA1[0]]
                 WKA2_type = WKAs[WKA2[0]]
                 d = WKA1[1].distance(WKA2[1])
-                if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
+                if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
                     if combination[0] in collisions:
                         collisions[combination[0]].append(combination[1])
                     else:
@@ -120,7 +120,8 @@ class CustomRepair(Repair):
                 WKA1_type = WKAs[WKA1[0]]
                 WKA2_type = WKAs[WKA2[0]]
                 d = WKA1[1].distance(WKA2[1])
-                if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
+                #Alt und Falsch: if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
+                if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
                     row[combination[
                         0]] = False  # Todo: Sinnvollen ersatz Finden, einfach durch random choice ersetzen verschlechtert das ergebnis einfach
         return (idx, row)
@@ -159,7 +160,7 @@ class WindEnergySiteSelectionProblem(Problem):
                 WKA1_type = WKAs[WKA1[0]]
                 WKA2_type = WKAs[WKA2[0]]
                 d = WKA1[1].distance(WKA2[1])
-                if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
+                if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
                     constraints_np = 1
                     break
         return (idx, constraints_np)

@@ -173,7 +173,7 @@ for idx, index in enumerate(diff[0]):
     df_np[idx, 1] = points[index, 1]
 gdf = gpd.GeoDataFrame(data=df_np)
 gdf.rename(columns={0:'type', 1:"geometry"}, inplace=True)
-gdf.set_geometry(col='geometry', inplace=True)
+gdf.set_geometry(col='geometry', crs="EPSG:3857", inplace=True)
 gdf.to_file(save_path + "/result.shp")
 
 

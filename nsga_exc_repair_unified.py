@@ -4,7 +4,7 @@ import pickle
 import sys
 from itertools import combinations
 from multiprocessing import Pool
-
+from pymoo.algorithms.soo.nonconvex.ga import GA
 import numpy as np
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.core.problem import Problem
@@ -14,7 +14,57 @@ from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
+import matplotlib.pyplot as plt
+# from pymoo.termination import get_termination
 
+
+reduced = True  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
+RUN_LOCAL = False
+POOL_SIZE = 10
+SMART_REPAIR = True
+
+strompreis = 0.10
+cell_size = 100
+timeString = "03:50:00"
+
+# Pfade müssen angepasst werden
+USER = 'Emily'
+
+if USER == 'Emily':
+    if RUN_LOCAL:
+        if reduced:
+            points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_reduced\numpy_array\points_{cell_size}.npy"
+        else:
+            points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
+        WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\base_information_enercon_reformatted.json"
+    else:
+        if reduced:
+            points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}_reduced.npy"
+        else:
+            points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}.npy"
+        WKA_data_path = r"/home/m/m_ster15/WindEnergy/base_information_enercon_reformatted.json"
+elif USER == 'Josefina':
+    if RUN_LOCAL:
+        points_path = fr"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_{cell_size}.npy"
+        WKA_data_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
+    else:
+        points_path = fr"/scratch/tmp/jbalzer/Study_Project/data/points_{cell_size}.npy"
+        WKA_data_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
+
+with open(points_path, "rb") as f:
+    points = np.load(f, allow_pickle=True)
+with open(WKA_data_path, "r") as f:
+    WKA_data = json.load(f)
+
+WKAs = {}
+for wka in WKA_data["turbines"]:
+    WKAs[wka["type"].replace(" ", "_")] = wka
+
+
+# print("Daten geladen und bereit")
+
+
+# https://pymoo.org/constraints/repair.html
 class CustomRepair(Repair):
 
     # Checkt welche elemente die meisten kollisionen verursachen und deaktiviert diese
@@ -43,11 +93,11 @@ class CustomRepair(Repair):
         colls_sorted = dict(sorted(collisions.items(), key=lambda elem: len(elem)))
         collisions = None
         del collisions
-        for key in colls_sorted.keys():
+        for key in colls_sorted.copy().keys():
             if key in colls_sorted:
                 row[key] = False
                 colls_sorted.pop(key, None)
-                for subkey in colls_sorted.keys():
+                for subkey in colls_sorted.copy().keys():
                     if subkey in colls_sorted:
                         if key in colls_sorted[subkey]:
                             colls_sorted[subkey].remove(key)
@@ -90,7 +140,7 @@ class CustomRepair(Repair):
 class WindEnergySiteSelectionProblem(Problem):
 
     def __init__(self, **kwargs):
-        super().__init__(n_var=points.shape[0], n_obj=2, n_ieq_constr=1, xl=0.0,
+        super().__init__(n_var=points.shape[0], n_obj=1, n_ieq_constr=1, xl=0.0,
                          xu=1.0, **kwargs)  # Bearbeitet weil v_var nicht mehr gepasst hat
 
     def const_check(self, item):
@@ -122,8 +172,7 @@ class WindEnergySiteSelectionProblem(Problem):
         for idx, item in res:
             constraints_np[idx] = item
 
-
-        #Ab hier werden die kosten berechnet
+        # Ab hier werden die kosten berechnet
         vals = np.where(X, points[:, 0], "")
 
         uniques, count = np.unique(vals, return_counts=True)
@@ -142,7 +191,7 @@ class WindEnergySiteSelectionProblem(Problem):
         vals[vals == ""] = 0
         vals_sum = np.sum(vals, axis=1)
 
-        #Ab hier wird die energie produktion berechnet
+        # Ab hier wird die energie produktion berechnet
         # Grundlage für Energieberechnung https://www.energie-lexikon.info/megawattstunde.html
         vals_ = np.where(X, points[:, 0], "")
         uniques, count = np.unique(vals_, return_counts=True)
@@ -161,14 +210,110 @@ class WindEnergySiteSelectionProblem(Problem):
             vals_[vals_ == key] = value
         vals_[vals_ == ""] = 0
         vals__sum = np.sum(vals_, axis=1)
-        vals__sum = -vals__sum
-
-        out["F"] = np.column_stack([vals_sum, vals__sum])
+        vals__sum = vals__sum * strompreis
+        result = vals__sum - vals_sum
+        result = -result
+        out["F"] = result
         out["G"] = np.asarray([constraints_np])
 
 
-
 def main():
-    with open(r"PATH", "rb") as file:
-        res = pickle.load(file)
-    res.X
+    global pool
+
+    if USER == "Emily":
+        if RUN_LOCAL:
+            logging.basicConfig(filename="WindEnergy.log",
+                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+        else:
+            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy_ga.log",
+                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+    if USER == "Josefina":
+        # Todo: Pfade anpassen
+        if RUN_LOCAL:
+            logging.basicConfig(filename="WindEnergy.log",
+                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+        else:
+            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
+                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+    # sys.stderr.write = logging.error
+    sys.stdout.write = logging.info
+
+    logging.info("Daten geladen und bereit")
+    logging.info(f"{points.shape[0]} Punkte werden Prozessiert")
+
+    # Todo: Population Size und Iterationsanzahl passend wählen
+    try:
+        pool = Pool(POOL_SIZE)
+        algorithm = GA(pop_size=100,
+                       sampling=BinaryRandomSampling(),
+                       crossover=TwoPointCrossover(),
+                       # Evtl uniformcrossover probieren from pymoo.operators.crossover.ux import UniformCrossover
+                       mutation=BitflipMutation(),
+                       eliminate_duplicates=True,
+                       repair=CustomRepair())
+
+        problem = WindEnergySiteSelectionProblem()
+        logging.info("Starte Minimierung")
+        # termination = get_termination("time", timeString)
+        # termination = get_termination("n_gen", 100)
+        res = minimize(problem,
+                       algorithm,
+                       ('n_gen', 100),
+                       seed=1,
+                       verbose=True,
+                       save_history=True)
+
+        logging.info("Minimierung Abgeschlossen")
+
+        if USER == 'Emily':
+            if RUN_LOCAL:
+                with open("result2.pkl", "wb") as out:
+                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+            else:
+                with open("/home/m/m_ster15/WindEnergy/result_ga.pkl", "wb") as out:
+                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+
+        elif USER == 'Josefina':
+            # Todo: Pfade anpassen
+            if RUN_LOCAL:
+                with open("result.pkl", "wb") as out:
+                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+
+            else:
+                with open("/result.pkl", "wb") as out:
+                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+
+        logging.info("Speichern Abgeschlossen")
+
+        # Pymoo scatter
+        if RUN_LOCAL:
+            Scatter().add(res.F).show()
+        pool.close()
+        logging.info("Programm Terminiert..")
+    except Exception as exc:
+        pool.close()
+        logging.error("Unbekannte Exception")
+        logging.error(exc)
+        raise exc
+
+
+if __name__ == "__main__":
+    main()
+
+
+def plot(res):
+    fitness_vals = []
+
+    for iteration in res.history:
+        x = []
+        for item in iteration.pop:
+            x.append(item.F[0])
+        fitness_vals.append(x)
+    np_fitness = np.asarray(fitness_vals)
+
+    # Manual Scotter
+    plot_val = [1, 10, 30, 50]
+    for i in plot_val:
+        plt.scatter(np_fitness[i], np.zeros(len(np_fitness[i])))
+    # plt.scatter(res.F[:, 0], res.F[:, 1])
+    plt.show()

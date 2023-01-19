@@ -13,7 +13,7 @@ RUN_LOCAL = False
 POOL_SIZE = 10
 SMART_REPAIR = True
 PROFIT_FIVE_YEARS = 7.79 # Angabe in ct pro kW/h für die ersten 5 Jahre nach Installation
-PROFIT_LATER_YEARS = 7.79 # Angabe in ct pro kW/h nach den ersten 5 Jahren nach Installation
+PROFIT_LATER_YEARS = 4.25 # Angabe in ct pro kW/h nach den ersten 5 Jahren nach Installation
 
 
 cell_size = 100

@@ -15,19 +15,20 @@ from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
 import matplotlib.pyplot as plt
+
 # from pymoo.termination import get_termination
 
 
-reduced = True  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
-RUN_LOCAL = False
-POOL_SIZE = 10
-SMART_REPAIR = True
+reduced = False  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
+RUN_LOCAL = True
+POOL_SIZE = 8
+SMART_REPAIR = False
 
 strompreis = 0.10
-#Todo, angepasste zahlen nutzen
-PROFIT_FIVE_YEARS = 7.79 # Angabe in ct pro kW/h für die ersten 5 Jahre nach Installation
-PROFIT_LATER_YEARS = 4.25 # Angabe in ct pro kW/h nach den ersten 5 Jahren nach Installation
-cell_size = 100
+# Todo, angepasste zahlen nutzen
+PROFIT_FIVE_YEARS = 7.79  # Angabe in ct pro kW/h für die ersten 5 Jahre nach Installation
+PROFIT_LATER_YEARS = 4.25  # Angabe in ct pro kW/h nach den ersten 5 Jahren nach Installation
+cell_size = 1000
 timeString = "03:50:00"
 
 # Pfade müssen angepasst werden
@@ -39,13 +40,13 @@ if USER == 'Emily':
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_reduced\numpy_array\points_{cell_size}.npy"
         else:
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
-        WKA_data_path = r"/base_information_enercon_reformatted.json"
+        WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\Algorithms\base_information_enercon_reformatted.json"
     else:
         if reduced:
             points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}_reduced.npy"
         else:
             points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}.npy"
-        WKA_data_path = r"/home/m/m_ster15/WindEnergy/base_information_enercon_reformatted.json"
+        WKA_data_path = r"/home/m/m_ster15/WindEnergy/Algorithms/base_information_enercon_reformatted.json"
 elif USER == 'Josefina':
     if RUN_LOCAL:
         points_path = fr"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_{cell_size}.npy"
@@ -78,21 +79,20 @@ class CustomRepair(Repair):
         combs = combinations(indices, 2)
         collisions = {}
         for combination in combs:
-            if combination[0] and combination[1]:
-                WKA1 = points[combination[0]]
-                WKA2 = points[combination[1]]
-                WKA1_type = WKAs[WKA1[0]]
-                WKA2_type = WKAs[WKA2[0]]
-                d = WKA1[1].distance(WKA2[1])
-                if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
-                    if combination[0] in collisions:
-                        collisions[combination[0]].append(combination[1])
-                    else:
-                        collisions[combination[0]] = [combination[1]]
-                    if combination[1] in collisions:
-                        collisions[combination[1]].append(combination[0])
-                    else:
-                        collisions[combination[1]] = [combination[0]]
+            WKA1 = points[combination[0]]
+            WKA2 = points[combination[1]]
+            WKA1_type = WKAs[WKA1[0]]
+            WKA2_type = WKAs[WKA2[0]]
+            d = WKA1[1].distance(WKA2[1])
+            if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
+                if combination[0] in collisions:
+                    collisions[combination[0]].append(combination[1])
+                else:
+                    collisions[combination[0]] = [combination[1]]
+                if combination[1] in collisions:
+                    collisions[combination[1]].append(combination[0])
+                else:
+                    collisions[combination[1]] = [combination[0]]
         colls_sorted = dict(sorted(collisions.items(), key=lambda elem: len(elem)))
         collisions = None
         del collisions
@@ -114,16 +114,15 @@ class CustomRepair(Repair):
         indices = np.where(row)[0]
         combs = combinations(indices, 2)
         for combination in combs:
-            if combination[0] and combination[1]:
-                WKA1 = points[combination[0]]
-                WKA2 = points[combination[1]]
-                WKA1_type = WKAs[WKA1[0]]
-                WKA2_type = WKAs[WKA2[0]]
-                d = WKA1[1].distance(WKA2[1])
-                #Alt und Falsch: if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
-                if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
-                    row[combination[
-                        0]] = False  # Todo: Sinnvollen ersatz Finden, einfach durch random choice ersetzen verschlechtert das ergebnis einfach
+            WKA1 = points[combination[0]]
+            WKA2 = points[combination[1]]
+            WKA1_type = WKAs[WKA1[0]]
+            WKA2_type = WKAs[WKA2[0]]
+            d = WKA1[1].distance(WKA2[1])
+            # Alt und Falsch: if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
+            if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
+                row[combination[
+                    0]] = False  # Todo: Sinnvollen ersatz Finden, einfach durch random choice ersetzen verschlechtert das ergebnis einfach
         return (idx, row)
 
     def _do(self, problem, X, **kwargs):
@@ -154,20 +153,19 @@ class WindEnergySiteSelectionProblem(Problem):
         combs = combinations(indices, 2)
         constraints_np = -1
         for combination in combs:
-            if combination[0] and combination[1]:
-                WKA1 = points[combination[0]]
-                WKA2 = points[combination[1]]
-                WKA1_type = WKAs[WKA1[0]]
-                WKA2_type = WKAs[WKA2[0]]
-                d = WKA1[1].distance(WKA2[1])
-                if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
-                    constraints_np = 1
-                    break
+            WKA1 = points[combination[0]]
+            WKA2 = points[combination[1]]
+            WKA1_type = WKAs[WKA1[0]]
+            WKA2_type = WKAs[WKA2[0]]
+            d = WKA1[1].distance(WKA2[1])
+            if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
+                constraints_np = 1
+                break
         return (idx, constraints_np)
 
     def _evaluate(self, X, out, *args, **kwargs):
 
-        constraints_np = np.zeros((X.shape[0]))
+        constraints_np = np.empty((X.shape[0]))
         row_gen = (x for x in X)
         indices = np.arange(X.shape[0])
 
@@ -271,7 +269,7 @@ def main():
 
         if USER == 'Emily':
             if RUN_LOCAL:
-                with open("result2.pkl", "wb") as out:
+                with open("result.pkl", "wb") as out:
                     pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
             else:
                 with open("/home/m/m_ster15/WindEnergy/result_ga.pkl", "wb") as out:

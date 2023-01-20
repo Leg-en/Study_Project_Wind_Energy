@@ -3,7 +3,7 @@ import logging
 import pickle
 import sys
 from itertools import combinations
-from multiprocessing import Pool
+
 from pymoo.algorithms.soo.nonconvex.ga import GA
 import numpy as np
 from pymoo.algorithms.moo.nsga2 import NSGA2
@@ -39,7 +39,7 @@ if USER == 'Emily':
         if reduced:
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_reduced\numpy_array\points_{cell_size}.npy"
         else:
-            points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_new\numpy_array\points_{cell_size}.npy"
+            points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
         WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\Algorithms\base_information_enercon_reformatted.json"
     else:
         if reduced:
@@ -97,13 +97,13 @@ class CustomRepair(Repair):
         colls_sorted = sorted(collisions.items(), key=lambda elem: len(elem[1]), reverse=True)
         colls_sorted_as_np = np.asarray(colls_sorted)
         if not colls_sorted_as_np.shape == (0,):
-            for key in colls_sorted_as_np[:, 0]:
+            for key in colls_sorted_as_np[:,0]:
                 if key in collisions:
                     row[key] = False
                     collisions.pop(key, None)
                     subaray = np.asarray(sorted(collisions.items(), key=lambda elem: len(elem[1]), reverse=True))
                     if not subaray.shape == (0,):
-                        for subkey in subaray[:, 0]:
+                        for subkey in subaray[:,0]:
                             if subkey in collisions:
                                 if key in collisions[subkey]:
                                     collisions[subkey].remove(key)
@@ -132,10 +132,10 @@ class CustomRepair(Repair):
         row_gen = (x for x in X)
         indices = np.arange(X.shape[0])
 
-        if SMART_REPAIR:
-            res = pool.map(self.smart_repair, zip(row_gen, indices))
-        else:
-            res = pool.map(self.repair_mp, zip(row_gen, indices))
+        res = []
+        for item in zip(row_gen, indices):
+            res.append(self.smart_repair(item))
+
         # Evtl überflüssig
         res.sort(key=lambda elem: elem[0])
         for idx, item in res:
@@ -172,7 +172,10 @@ class WindEnergySiteSelectionProblem(Problem):
         row_gen = (x for x in X)
         indices = np.arange(X.shape[0])
 
-        res = pool.map(self.const_check, zip(row_gen, indices))
+        res = []
+        for item in zip(row_gen, indices):
+            res.append(self.const_check(item))
+        # res = pool.map(self.const_check, zip(row_gen, indices))
         res.sort(key=lambda elem: elem[0])
         for idx, item in res:
             constraints_np[idx] = item
@@ -241,21 +244,21 @@ def main():
             logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
                                 level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     # sys.stderr.write = logging.error
-    sys.stdout.write = logging.info
+    #sys.stdout.write = logging.info
 
     logging.info("Daten geladen und bereit")
     logging.info(f"{points.shape[0]} Punkte werden Prozessiert")
 
     # Todo: Population Size und Iterationsanzahl passend wählen
     try:
-        pool = Pool(POOL_SIZE)
-        algorithm = GA(pop_size=100,
+        algorithm = GA(pop_size=1,
                        sampling=BinaryRandomSampling(),
                        crossover=TwoPointCrossover(),
                        # Evtl uniformcrossover probieren from pymoo.operators.crossover.ux import UniformCrossover
                        mutation=BitflipMutation(),
                        eliminate_duplicates=True,
-                       repair=CustomRepair())
+                       repair=CustomRepair()
+                       )
 
         problem = WindEnergySiteSelectionProblem()
         logging.info("Starte Minimierung")
@@ -292,11 +295,9 @@ def main():
 
         # Pymoo scatter
         if RUN_LOCAL:
-            Scatter().add(res.F).show()
-        pool.close()
+            plot(res)
         logging.info("Programm Terminiert..")
     except Exception as exc:
-        pool.close()
         logging.error("Unbekannte Exception")
         logging.error(exc)
         raise exc

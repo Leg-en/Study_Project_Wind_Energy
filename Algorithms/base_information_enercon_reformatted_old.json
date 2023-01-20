@@ -31,62 +31,6 @@
       "fundament_diameter_in_meter": 30.0
     },
     {
-      "type": "E-82 E2 2000.0",
-      "price": {
-        "price_wea_in_euro": 4000000.0,
-        "price_building": 4400000.0,
-        "price_per_year": 360000.0
-      },
-      "rotor_diameter_in_meter": 82.0,
-      "rotor_area_in_square_meters": 5281.0,
-      "nominal_power_in_kW": 2000.0,
-      "life_expectancy_in_years": 20.0,
-      "height": {
-        "wind_classes": [
-          "IEC IIA"
-        ],
-        "hub_height_in_meter": {
-          "IEC IIA": [
-            78,
-            84,
-            85,
-            98,
-            108,
-            138
-          ]
-        }
-      },
-      "fundament_diameter_in_meter": 30.0
-    },
-    {
-      "type": "E-82 E2 2300.0",
-      "price": {
-        "price_wea_in_euro": 4600000.0,
-        "price_building": 5000000.0,
-        "price_per_year": 450000.0
-      },
-      "rotor_diameter_in_meter": 82.0,
-      "rotor_area_in_square_meters": 5281.0,
-      "nominal_power_in_kW": 2300.0,
-      "life_expectancy_in_years": 20.0,
-      "height": {
-        "wind_classes": [
-          "IEC IIA"
-        ],
-        "hub_height_in_meter": {
-          "IEC IIA": [
-            78,
-            84,
-            85,
-            98,
-            108,
-            138
-          ]
-        }
-      },
-      "fundament_diameter_in_meter": 30.0
-    },
-    {
       "type": "E-115 EP3 E3 2990.0",
       "price": {
         "price_wea_in_euro": 5980000.0,

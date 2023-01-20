@@ -19,7 +19,7 @@ from pymoo.visualization.scatter import Scatter
 
 
 reduced = False  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
-RUN_LOCAL = False
+RUN_LOCAL = True
 POOL_SIZE = 10
 SMART_REPAIR = True
 PROFIT_FIVE_YEARS = 7.79 # Angabe in ct pro kW/h für die ersten 5 Jahre nach Installation
@@ -30,7 +30,8 @@ cell_size = 100 # maybe we could change this to 50
 #timeString = "03:50:00"
 
 # Pfade müssen angepasst werden
-USER = 'Emily'
+USER = 'Josefina'
+#USER = 'Emily'
 
 if USER == 'Emily':
     if RUN_LOCAL:
@@ -47,8 +48,8 @@ if USER == 'Emily':
         WKA_data_path = r"/home/m/m_ster15/WindEnergy/base_information_enercon_reformatted.json"
 elif USER == 'Josefina':
     if RUN_LOCAL:
-        points_path = fr"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_{cell_size}.npy"
-        WKA_data_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
+        points_path = fr"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/reduced_area_smart_repair/points_100_reduced.npy"#points_{cell_size}.npy"
+        WKA_data_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/Algorithms/base_information_enercon_reformatted.json"
     else:
         points_path = fr"/scratch/tmp/jbalzer/Study_Project/data/points_{cell_size}.npy"
         WKA_data_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
@@ -61,7 +62,7 @@ with open(WKA_data_path, "r") as f:
 WKAs = {}
 for wka in WKA_data["turbines"]:
     WKAs[wka["type"].replace(" ", "_")] = wka
-
+print()
 
 # print("Daten geladen und bereit")
 

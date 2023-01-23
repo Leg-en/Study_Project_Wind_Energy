@@ -1,5 +1,5 @@
 import json
-import logging
+
 import pickle
 import sys
 from itertools import combinations
@@ -41,7 +41,7 @@ if USER == 'Emily':
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_reduced\numpy_array\points_{cell_size}.npy"
         else:
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
-        WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\Algorithms\base_information_enercon_reformatted.json"
+        WKA_data_path = r"/Algorithms/base_information_enercon_reformatted.json"
     else:
         if reduced:
             points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}_reduced.npy"
@@ -96,15 +96,16 @@ class CustomRepair(Repair):
                 else:
                     collisions[combination[1]] = [combination[0]]
         colls_sorted = sorted(collisions.items(), key=lambda elem: len(elem[1]), reverse=True)
-        colls_sorted_as_np = np.asarray(colls_sorted)
+        colls_sorted_as_np = np.asarray([val[0] for val in colls_sorted])
         if not colls_sorted_as_np.shape == (0,):
-            for key in colls_sorted_as_np[:,0]:
+            for key in colls_sorted_as_np:
                 if key in collisions:
                     row[key] = False
                     collisions.pop(key, None)
-                    subaray = np.asarray(sorted(collisions.items(), key=lambda elem: len(elem[1]), reverse=True))
-                    if not subaray.shape == (0,):
-                        for subkey in subaray[:,0]:
+                    subarray = sorted(collisions.items(), key=lambda elem: len(elem[1]), reverse=True)
+                    subarray_np = np.asarray([val[0] for val in subarray])
+                    if not subarray_np.shape == (0,):
+                        for subkey in subarray_np:
                             if subkey in collisions:
                                 if key in collisions[subkey]:
                                     collisions[subkey].remove(key)
@@ -249,26 +250,6 @@ class WindEnergySiteSelectionProblem(Problem):
 def main():
     global pool
 
-    if USER == "Emily":
-        if RUN_LOCAL:
-            logging.basicConfig(filename="WindEnergy.log",
-                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-        else:
-            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy_ga.log",
-                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-    if USER == "Josefina":
-        # Todo: Pfade anpassen
-        if RUN_LOCAL:
-            logging.basicConfig(filename="WindEnergy.log",
-                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-        else:
-            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
-                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-    # sys.stderr.write = logging.error
-    #sys.stdout.write = logging.info
-
-    logging.info("Daten geladen und bereit")
-    logging.info(f"{points.shape[0]} Punkte werden Prozessiert")
 
     # Todo: Population Size und Iterationsanzahl passend wählen
     try:
@@ -282,7 +263,7 @@ def main():
                        )
 
         problem = WindEnergySiteSelectionProblem()
-        logging.info("Starte Minimierung")
+
         # termination = get_termination("time", timeString)
         # termination = get_termination("n_gen", 100)
         res = minimize(problem,
@@ -292,11 +273,10 @@ def main():
                        verbose=True,
                        save_history=True)
 
-        logging.info("Minimierung Abgeschlossen")
 
         if USER == 'Emily':
             if RUN_LOCAL:
-                with open("result.pkl", "wb") as out:
+                with open("../Results/ga_reduced/result.pkl", "wb") as out:
                     pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
             else:
                 with open("/home/m/m_ster15/WindEnergy/result_ga.pkl", "wb") as out:
@@ -305,22 +285,19 @@ def main():
         elif USER == 'Josefina':
             # Todo: Pfade anpassen
             if RUN_LOCAL:
-                with open("result.pkl", "wb") as out:
+                with open("../Results/ga_reduced/result.pkl", "wb") as out:
                     pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
             else:
-                with open("/result.pkl", "wb") as out:
+                with open("../Results/ga_reduced/result.pkl", "wb") as out:
                     pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
-        logging.info("Speichern Abgeschlossen")
 
         # Pymoo scatter
         if RUN_LOCAL:
             plot(res)
-        logging.info("Programm Terminiert..")
+
     except Exception as exc:
-        logging.error("Unbekannte Exception")
-        logging.error(exc)
         raise exc
 
 

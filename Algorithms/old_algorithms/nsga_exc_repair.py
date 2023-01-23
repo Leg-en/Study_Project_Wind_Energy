@@ -18,7 +18,7 @@ from pymoo.visualization.scatter import Scatter
 # from pymoo.termination import get_termination
 
 
-reduced = False  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
+reduced = True  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
 RUN_LOCAL = True
 POOL_SIZE = 10
 SMART_REPAIR = True
@@ -39,13 +39,13 @@ if USER == 'Emily':
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_reduced\numpy_array\points_{cell_size}.npy"
         else:
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
-        WKA_data_path = r"/base_information_enercon_reformatted.json"
+        WKA_data_path = r"/home/m/m_ster15/WindEnergy/Algorithms/base_information_enercon_reformatted.json"
     else:
         if reduced:
             points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}_reduced.npy"
         else:
             points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}.npy"
-        WKA_data_path = r"/home/m/m_ster15/WindEnergy/base_information_enercon_reformatted.json"
+        WKA_data_path = r"/home/m/m_ster15/WindEnergy/Algorithms/base_information_enercon_reformatted.json"
 elif USER == 'Josefina':
     if RUN_LOCAL:
         points_path = fr"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/reduced_area_smart_repair/points_100_reduced.npy"#points_{cell_size}.npy"
@@ -84,7 +84,7 @@ class CustomRepair(Repair):
                 WKA1_type = WKAs[WKA1[0]]
                 WKA2_type = WKAs[WKA2[0]]
                 d = WKA1[1].distance(WKA2[1])
-                if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
+                if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
                     if combination[0] in collisions:
                         collisions[combination[0]].append(combination[1])
                     else:
@@ -127,7 +127,7 @@ class CustomRepair(Repair):
                 WKA1_type = WKAs[WKA1[0]]
                 WKA2_type = WKAs[WKA2[0]]
                 d = WKA1[1].distance(WKA2[1])
-                if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
+                if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
                     row[combination[
                         0]] = False  # Todo: Sinnvollen ersatz Finden, einfach durch random choice ersetzen verschlechtert das ergebnis einfach
         return (idx, row)
@@ -166,7 +166,7 @@ class WindEnergySiteSelectionProblem(Problem):
                 WKA1_type = WKAs[WKA1[0]]
                 WKA2_type = WKAs[WKA2[0]]
                 d = WKA1[1].distance(WKA2[1])
-                if 3 * WKA1_type["rotor_diameter_in_meter"] < d and 3 * WKA2_type["rotor_diameter_in_meter"] < d:
+                if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
                     constraints_np = 1
                     break
         return (idx, constraints_np)
@@ -232,15 +232,15 @@ def main():
 
     if USER == "Emily":
         if RUN_LOCAL:
-            logging.basicConfig(filename="WindEnergy.log",
+            logging.basicConfig(filename="../Results/ga_reduced/WindEnergy.log",
                                 level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         else:
-            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy_nsga_complete.log",
+            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy_nsga.log",
                                 level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     if USER == "Josefina":
         # Todo: Pfade anpassen
         if RUN_LOCAL:
-            logging.basicConfig(filename="WindEnergy.log",
+            logging.basicConfig(filename="../Results/ga_reduced/WindEnergy.log",
                                 level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         else:
             logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
@@ -276,20 +276,20 @@ def main():
 
         if USER == 'Emily':
             if RUN_LOCAL:
-                with open("result.pkl", "wb") as out:
+                with open("../Results/ga_reduced/result.pkl", "wb") as out:
                     pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
             else:
-                with open("/home/m/m_ster15/WindEnergy/result_nsga_complete.pkl", "wb") as out:
+                with open("/home/m/m_ster15/WindEnergy/result_nsga.pkl", "wb") as out:
                     pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
         elif USER == 'Josefina':
             # Todo: Pfade anpassen
             if RUN_LOCAL:
-                with open("result.pkl", "wb") as out:
+                with open("../Results/ga_reduced/result.pkl", "wb") as out:
                     pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
             else:
-                with open("/result.pkl", "wb") as out:
+                with open("../Results/ga_reduced/result.pkl", "wb") as out:
                     pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
         logging.info("Speichern Abgeschlossen")

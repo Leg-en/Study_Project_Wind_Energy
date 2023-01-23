@@ -33,13 +33,13 @@ if USER == 'Emily':
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_reduced\numpy_array\points_{cell_size}.npy"
         else:
             points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size\numpy_array\points_{cell_size}.npy"
-        WKA_data_path = r"/base_information_enercon_reformatted.json"
+        WKA_data_path = r"../base_information_enercon_reformatted.json"
     else:
         if reduced:
             points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}_reduced.npy"
         else:
             points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}.npy"
-        WKA_data_path = r"/home/m/m_ster15/WindEnergy/base_information_enercon_reformatted.json"
+        WKA_data_path = r"/home/m/m_ster15/WindEnergy/Algorithms/base_information_enercon_reformatted.json"
 elif USER == 'Josefina':
     if RUN_LOCAL:
         points_path = fr"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_{cell_size}.npy"
@@ -147,7 +147,7 @@ class MyCallback(Callback):
 def main():
     if USER == "Emily":
         if RUN_LOCAL:
-            logging.basicConfig(filename="../Results/Reduced Area Repair Excluded/WindEnergy.log",
+            logging.basicConfig(filename="../Results/old/Reduced Area Repair Excluded/WindEnergy.log",
                                 level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         else:
             logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
@@ -155,7 +155,7 @@ def main():
     if USER == "Josefina":
         # Todo: Pfade anpassen
         if RUN_LOCAL:
-            logging.basicConfig(filename="../Results/Reduced Area Repair Excluded/WindEnergy.log",
+            logging.basicConfig(filename="../Results/old/Reduced Area Repair Excluded/WindEnergy.log",
                                 level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         else:
             logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
@@ -192,7 +192,7 @@ def main():
 
     if USER == 'Emily':
         if RUN_LOCAL:
-            with open("result.pkl", "wb") as out:
+            with open("../Results/ga_reduced/result.pkl", "wb") as out:
                 pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
             with open("callback.pkl", "wb") as out:

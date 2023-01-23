@@ -22,15 +22,15 @@ from pymoo.termination.max_gen import MaximumGenerationTermination
 
 # from pymoo.termination import get_termination
 
-RUN_NAME = ""
+RUN_NAME = "Test"
 reduced = True  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
 RUN_LOCAL = True
 POOL_SIZE = 8
 SMART_REPAIR = True
 max_base_generations = 100
-max_add_generations = 100 #Ist jeweils 100 generationen zusätzlich
+max_add_generations = 2 #Ist jeweils 100 generationen zusätzlich
 strompreis = 0.10
-cell_size = 1000
+cell_size = 100
 
 
 # Pfade müssen angepasst werden
@@ -53,7 +53,7 @@ if USER == "Josefina":
 
 
 
-WKA_data_path = os.path.join(base_data_path, "source_data/base_information_enercon_reformatted.json")
+WKA_data_path = os.path.join(base_data_path, "base_information_enercon_reformatted.json")
 if reduced:
     points_path = os.path.join(base_data_path, f"points_{cell_size}_reduced.npy")
 else:
@@ -248,7 +248,7 @@ class WindEnergySiteSelectionProblem(Problem):
 
 def main():
     global pool
-    save_path = os.path.join(base_save_path, "saves")
+    save_path = os.path.join(base_save_path, f"saves_{RUN_NAME}")
     os.mkdir(save_path)
     logging.basicConfig(filename=os.path.join(save_path, RUN_NAME+".log"),
                         level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')

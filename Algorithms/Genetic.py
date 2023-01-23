@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import pickle
 import sys
 from itertools import combinations
@@ -16,45 +17,47 @@ from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
 import matplotlib.pyplot as plt
 import random
+import dill
+from pymoo.termination.max_gen import MaximumGenerationTermination
 
 # from pymoo.termination import get_termination
 
-
-reduced = False  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
+RUN_NAME = ""
+reduced = True  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
 RUN_LOCAL = True
 POOL_SIZE = 8
 SMART_REPAIR = True
-
+max_base_generations = 100
+max_add_generations = 100 #Ist jeweils 100 generationen zusätzlich
 strompreis = 0.10
-# Todo, angepasste zahlen nutzen
-PROFIT_FIVE_YEARS = 7.79  # Angabe in ct pro kW/h für die ersten 5 Jahre nach Installation
-PROFIT_LATER_YEARS = 4.25  # Angabe in ct pro kW/h nach den ersten 5 Jahren nach Installation
 cell_size = 1000
-timeString = "03:50:00"
+
 
 # Pfade müssen angepasst werden
 USER = 'Emily'
 
-if USER == 'Emily':
+if USER == "Emily":
     if RUN_LOCAL:
-        if reduced:
-            points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_reduced\numpy_array\points_{cell_size}.npy"
-        else:
-            points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_new\numpy_array\points_{cell_size}.npy"
-        WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\Algorithms\base_information_enercon_reformatted.json"
-    else:
-        if reduced:
-            points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}_reduced.npy"
-        else:
-            points_path = fr"/scratch/tmp/m_ster15/points_{cell_size}.npy"
-        WKA_data_path = r"/home/m/m_ster15/WindEnergy/Algorithms/base_information_enercon_reformatted.json"
-elif USER == 'Josefina':
+        base_data_path = r""
+        base_save_path = r""
+    if not RUN_LOCAL:
+        base_data_path = r""
+        base_save_path = r""
+if USER == "Josefina":
     if RUN_LOCAL:
-        points_path = fr"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_{cell_size}.npy"
-        WKA_data_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
-    else:
-        points_path = fr"/scratch/tmp/jbalzer/Study_Project/data/points_{cell_size}.npy"
-        WKA_data_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/base_information_enercon_reformatted.json"
+        base_data_path = r""
+        base_save_path = r""
+    if not RUN_LOCAL:
+        base_data_path = r""
+        base_save_path = r""
+
+
+
+WKA_data_path = os.path.join(base_data_path, "base_information_enercon_reformatted.json")
+if reduced:
+    points_path = os.path.join(base_data_path, f"points_{cell_size}_reduced.npy")
+else:
+    points_path = os.path.join(base_data_path, f"points_{cell_size}.npy")
 
 with open(points_path, "rb") as f:
     points = np.load(f, allow_pickle=True)
@@ -245,22 +248,11 @@ class WindEnergySiteSelectionProblem(Problem):
 
 def main():
     global pool
+    save_path = os.path.join(base_save_path, "saves")
+    os.mkdir(save_path)
+    logging.basicConfig(filename=os.path.join(save_path, RUN_NAME+".log"),
+                        level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    if USER == "Emily":
-        if RUN_LOCAL:
-            logging.basicConfig(filename="WindEnergy.log",
-                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-        else:
-            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy_ga.log",
-                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-    if USER == "Josefina":
-        # Todo: Pfade anpassen
-        if RUN_LOCAL:
-            logging.basicConfig(filename="WindEnergy.log",
-                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-        else:
-            logging.basicConfig(filename="/home/m/m_ster15/WindEnergy/WindEnergy.log",
-                                level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     # sys.stderr.write = logging.error
     sys.stdout.write = logging.info
 
@@ -282,32 +274,33 @@ def main():
         logging.info("Starte Minimierung")
         # termination = get_termination("time", timeString)
         # termination = get_termination("n_gen", 100)
+        max_base_generations = 100
         res = minimize(problem,
                        algorithm,
-                       ('n_gen', 100),
+                       ('n_gen', max_base_generations),
                        seed=1,
                        verbose=True,
                        save_history=True)
+        logging.info("First Minimization done")
+        save_state = 0
+        for gen in range(max_add_generations):
+            logging.info(f"{gen} Iteration of minimization done")
+            max_base_generations += 100
+            algorithm.termination = MaximumGenerationTermination(max_base_generations)
+            res = minimize(problem,
+                           algorithm,
+                           seed=1,
+                           verbose=True,
+                           save_history=True)
+            with open(os.path.join(save_path, f"res{save_state%2}.dill"), "wb") as file:
+                dill.dump(algorithm, file)
+            save_state += 1
+
 
         logging.info("Minimierung Abgeschlossen")
 
-        if USER == 'Emily':
-            if RUN_LOCAL:
-                with open("result.pkl", "wb") as out:
-                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
-            else:
-                with open("/home/m/m_ster15/WindEnergy/result_ga.pkl", "wb") as out:
-                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
-
-        elif USER == 'Josefina':
-            # Todo: Pfade anpassen
-            if RUN_LOCAL:
-                with open("result.pkl", "wb") as out:
-                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
-
-            else:
-                with open("/result.pkl", "wb") as out:
-                    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+        with open(os.path.join(save_path, "res.dill"), "wb") as file:
+            dill.dump(res, file)
 
         logging.info("Speichern Abgeschlossen")
 

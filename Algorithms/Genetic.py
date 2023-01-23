@@ -38,11 +38,11 @@ USER = 'Emily'
 
 if USER == "Emily":
     if RUN_LOCAL:
-        base_data_path = r""
-        base_save_path = r""
+        base_data_path = r"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data"
+        base_save_path = r"C:\workspace\Study_Project_Wind_Energy\Results"
     if not RUN_LOCAL:
-        base_data_path = r""
-        base_save_path = r""
+        base_data_path = r"/home/m/m_ster15/WindEnergy/source_data"
+        base_save_path = r"/home/m/m_ster15/WindEnergy/saves"
 if USER == "Josefina":
     if RUN_LOCAL:
         base_data_path = r""
@@ -53,7 +53,7 @@ if USER == "Josefina":
 
 
 
-WKA_data_path = os.path.join(base_data_path, "base_information_enercon_reformatted.json")
+WKA_data_path = os.path.join(base_data_path, "source_data/base_information_enercon_reformatted.json")
 if reduced:
     points_path = os.path.join(base_data_path, f"points_{cell_size}_reduced.npy")
 else:
@@ -99,22 +99,22 @@ class CustomRepair(Repair):
                 else:
                     collisions[combination[1]] = [combination[0]]
         colls_sorted = sorted(collisions.items(), key=lambda elem: len(elem[1]), reverse=True)
-        colls_sorted_as_np = np.asarray(colls_sorted)
+        colls_sorted_as_np = np.asarray([val[0] for val in colls_sorted])
         if not colls_sorted_as_np.shape == (0,):
-            for key in colls_sorted_as_np[:, 0]:
+            for key in colls_sorted_as_np:
                 if key in collisions:
                     row[key] = False
                     collisions.pop(key, None)
-                    subaray = np.asarray(sorted(collisions.items(), key=lambda elem: len(elem[1]), reverse=True))
-                    if not subaray.shape == (0,):
-                        for subkey in subaray[:, 0]:
+                    subarray = sorted(collisions.items(), key=lambda elem: len(elem[1]), reverse=True)
+                    subarray_np = np.asarray([val[0] for val in subarray])
+                    if not subarray_np.shape == (0,):
+                        for subkey in subarray_np:
                             if subkey in collisions:
                                 if key in collisions[subkey]:
                                     collisions[subkey].remove(key)
                                     if len(collisions[subkey]) == 0:
                                         collisions.pop(subkey, None)
         return (idx, row)
-
     def random_repair(self, item):
         '''
         Identical to repair_mp besides the randomized choice of the the element that should be removed.

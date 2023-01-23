@@ -4,9 +4,9 @@ from pymoo.core.problem import Problem
 from pymoo.core.repair import Repair
 import pickle
 
-cell_size = 100
-reduced = True
-save_path=r"C:\uni_workspace\ArcGIS\StudyProject_data\result"
+cell_size = 50
+reduced = False
+save_path=r"C:\workspace\Study_Project_Wind_Energy\data\results\test"
 
 class CustomRepair(Repair):
 
@@ -158,11 +158,15 @@ class WindEnergySiteSelectionProblem(Problem):
         out["G"] = np.asarray([constraints_np])
 
 
-with open(r"C:\uni_workspace\Study_Project_Wind_Energy\GA_reduced\result_ga.pkl", "rb") as file:
+with open(r"C:\workspace\Study_Project_Wind_Energy\Results\ga_complete_5WKA_50m\result_ga_50m.pkl", "rb") as file:
     result = pickle.load(file)
 
-points_path = fr"C:\workspace\Study_Project_Wind_Energy\data\processed_data_{cell_size}cell_size_reduced\numpy_array\points_{cell_size}.npy"
-points_path = r"C:\uni_workspace\Study_Project_Wind_Energy\Project_Arrays\points_100_reduced.npy"
+if reduced:
+    points_path = fr"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data\points_{cell_size}_reduced.npy"
+else:
+    points_path = fr"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data\points_{cell_size}.npy"
+
+
 with open(points_path, "rb") as f:
     points = np.load(f, allow_pickle=True)
 
@@ -173,7 +177,7 @@ for idx, index in enumerate(diff[0]):
     df_np[idx, 1] = points[index, 1]
 gdf = gpd.GeoDataFrame(data=df_np)
 gdf.rename(columns={0:'type', 1:"geometry"}, inplace=True)
-gdf.set_geometry(col='geometry', crs="EPSG:3857", inplace=True)
+gdf.set_geometry(col='geometry', crs="EPSG:25832", inplace=True)
 gdf.to_file(save_path + "/result.shp")
 
 

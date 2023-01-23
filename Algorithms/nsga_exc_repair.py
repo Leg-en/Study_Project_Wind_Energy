@@ -93,13 +93,20 @@ class CustomRepair(Repair):
                         collisions[combination[1]].append(combination[0])
                     else:
                         collisions[combination[1]] = [combination[0]]
+        # The result is a (sorted) dictionary with the amount of collisions for every possible WEA position:
         colls_sorted = dict(sorted(collisions.items(), key=lambda elem: len(elem)))
-        collisions = None
+        collisions = None # line required ?? Cause it gets deleted anyway...
         del collisions
+        # In the following lines, the cells with the highest amount of collisions will be deleted until there are no more collisions.
+        # Here a key gets initialized. It will be the key with the currently highest amount of collisions.
         for key in colls_sorted.copy().keys():
             if key in colls_sorted:
+                # A cell gets deleted:
                 row[key] = False
+                # The same cell gets removed from the sorted collisions list:
                 colls_sorted.pop(key, None)
+                # Now the cell index which was removed will be removed from all the other cells where this one is listed as collision.
+                # The reason is, that now, when it is removed, it causes no further collisions.
                 for subkey in colls_sorted.copy().keys():
                     if subkey in colls_sorted:
                         if key in colls_sorted[subkey]:

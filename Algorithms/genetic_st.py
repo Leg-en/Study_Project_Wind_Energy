@@ -15,6 +15,7 @@ from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
 import matplotlib.pyplot as plt
+import random
 
 # from pymoo.termination import get_termination
 
@@ -109,6 +110,26 @@ class CustomRepair(Repair):
                                     collisions[subkey].remove(key)
                                     if len(collisions[subkey]) == 0:
                                         collisions.pop(subkey, None)
+        return (idx, row)
+
+    def random_repair(self, item):
+        '''
+        Identical to repair_mp besides the randomized choice of the the element that should be removed.
+        :param item:
+        :return:
+        '''
+        row = item[0]
+        idx = item[1]
+        indices = np.where(row)[0]
+        combs = combinations(indices, 2)
+        for combination in combs:
+            WKA1 = points[combination[0]]
+            WKA2 = points[combination[1]]
+            WKA1_type = WKAs[WKA1[0]]
+            WKA2_type = WKAs[WKA2[0]]
+            d = WKA1[1].distance(WKA2[1])
+            if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
+                row[combination[random.choice([0,1])]] = False
         return (idx, row)
 
     def repair_mp(self, item):

@@ -12,7 +12,7 @@ from glob import glob
 
 
 # Hier entsprechend eigene Pfade (/Variablen) Setzen
-cell_size = 1
+cell_size = 50
 WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data\base_information_enercon_reformatted.json"
 
 reduce = "single" #either full, reduced, single
@@ -162,6 +162,17 @@ for WKA in tqdm(WKA_data["turbines"]):
     else:
         acc_data = df_np
 
-with open(numpy_array + "\points_" + str(cell_size) + ".npy",
-          "wb") as f:
-    np.save(f, acc_data)
+
+if reduce == "reduced":
+    with open(numpy_array + "\points_" + str(cell_size) + "_reduced.npy",
+              "wb") as f:
+        np.save(f, acc_data)
+elif reduce == "full":
+    with open(numpy_array + "\points_" + str(cell_size) + ".npy",
+              "wb") as f:
+        np.save(f, acc_data)
+elif reduce == "single":
+    with open(numpy_array + "\points_" + str(cell_size) + "_single.npy",
+              "wb") as f:
+        np.save(f, acc_data)
+

@@ -283,6 +283,7 @@ def main():
     os.mkdir(save_path)
     logging.basicConfig(filename=os.path.join(save_path, RUN_NAME+".log"),
                         level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.info(f"Arguments given: {args}")
 
     # sys.stderr.write = logging.error
     sys.stdout.write = logging.info

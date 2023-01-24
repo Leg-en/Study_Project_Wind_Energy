@@ -20,20 +20,44 @@ import random
 import dill
 from pymoo.termination import get_termination
 
-# from pymoo.termination import get_termination
 
-RUN_NAME = "genetic_100m_2k_iter"
-reduced = False  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
-RUN_LOCAL = False
-POOL_SIZE = 34
-SMART_REPAIR = True
-max_base_generations = 2000
-strompreis = 0.10
-cell_size = 100
+import argparse
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("RUN_NAME", help="Name des Programms", type=str)
+parser.add_argument("reduced", help="Entweder full,reduced, single", type=str)
+parser.add_argument("RUN_LOCAL", help="Bestimmt ob auf Palma oder lokal gerechnet wird", type=bool)
+parser.add_argument("POOL_SIZE", help="Bestimmt die anzahl der prozesse", type=int)
+parser.add_argument("REPAIR", help="Bestimmt welcher repair mechanismus benutzt wird. Entweder simple, random oder smart_repair", type=str)
+parser.add_argument("strompreis", help="Bestimmt den strompreis", type=float)
+parser.add_argument("cell_size", help="Bestimmt die cell size", type=str)
+parser.add_argument("USER", help="Bestimmt den user", type=str)
+
+parser.add_argument("--max_base_generations", help="Bestimmt die anzahl der generationen", type=int)
+parser.add_argument("--max_time", help="Bestimmt die anzahl sekunden die die optimierung läuft", type=int)
+
+args = parser.parse_args()
 
 
-# Pfade müssen angepasst werden
-USER = 'Emily'
+
+
+RUN_NAME = args.RUN_NAME
+reduced = args.reduced  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
+RUN_LOCAL = args.RUN_LOCAL
+POOL_SIZE = args.POOL_SIZE
+REPAIR = args.REPAIR
+strompreis = args.strompreis
+cell_size = args.cell_size
+USER = args.USER
+
+if args.max_time and args.max_base_generations:
+    raise NotImplemented()
+elif args.max_time:
+    termination = get_termination("time", args.max_time)
+elif args.max_base_generations:
+    termination = get_termination("n_gen", args.max_base_generations)
+
 
 if USER == "Emily":
     if RUN_LOCAL:
@@ -53,10 +77,15 @@ if USER == "Josefina":
 
 
 WKA_data_path = os.path.join(base_data_path, "base_information_enercon_reformatted.json")
-if reduced:
+
+
+if reduced == "reduced":
     points_path = os.path.join(base_data_path, f"points_{cell_size}_reduced.npy")
-else:
+elif reduced == "full":
     points_path = os.path.join(base_data_path, f"points_{cell_size}.npy")
+elif reduced == "single":
+    points_path = os.path.join(base_data_path, f"points_{cell_size}_single.npy")
+
 
 with open(points_path, "rb") as f:
     points = np.load(f, allow_pickle=True)
@@ -155,10 +184,13 @@ class CustomRepair(Repair):
         row_gen = (x for x in X)
         indices = np.arange(X.shape[0])
 
-        if SMART_REPAIR:
+        if REPAIR == "smart_repair":
             res = pool.map(self.smart_repair, zip(row_gen, indices))
-        else:
+        elif REPAIR == "simple":
             res = pool.map(self.repair_mp, zip(row_gen, indices))
+        elif REPAIR == "random":
+            res = pool.map(self.random_repair, zip(row_gen, indices))
+
         # Evtl überflüssig
         res.sort(key=lambda elem: elem[0])
         for idx, item in res:
@@ -271,9 +303,6 @@ def main():
 
         problem = WindEnergySiteSelectionProblem()
         logging.info("Starte Minimierung")
-        # termination = get_termination("time", timeString)
-        # termination = get_termination("n_gen", 100)
-        termination = get_termination("time", 603000)
         res = minimize(problem,
                        algorithm,
                        termination,

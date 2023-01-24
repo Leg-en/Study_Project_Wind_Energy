@@ -12,15 +12,20 @@ from glob import glob
 
 
 # Hier entsprechend eigene Pfade (/Variablen) Setzen
-cell_size = 1000
+cell_size = 1
 WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data\base_information_enercon_reformatted.json"
 
-reduce = False
+reduce = "single" #either full, reduced, single
 
-if reduce:
+if reduce == "reduced":
     processed_data = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_" + str(cell_size) + "cell_size_reduced"
-else:
+elif reduce == "full":
     processed_data = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_" + str(cell_size) + "cell_size"
+elif reduce == "single":
+    processed_data = r"C:\workspace\Study_Project_Wind_Energy\data\processed_data_" + str(cell_size) + "cell_size_single"
+else:
+    raise FileExistsError("Non existente Reduce Variante")
+
 
 with open(WKA_data_path, "r") as f:
     WKA_data = json.load(f)
@@ -39,10 +44,16 @@ os.mkdir(numpy_array)
 
 # flurstuecke = r"flurstuecke.shp"
 flurstuecke = r"C:\workspace\MasterSemester1\WindEnergy\Project\ArcGIS Project\WindEnergy.gdb\Flurstuecke_Area_Intersect"
-if reduce:
+if reduce == "reduced":
     potential_areas = r"potential_areas_reduced.shp" #Reduziert: potential_areas_reduced Vollständig: potential_areas_lpa_400m
-else:
+elif reduce == "full":
     potential_areas = r"potential_areas_lpa_400m.shp" #Reduziert: potential_areas_reduced Vollständig: potential_areas_lpa_400m
+elif reduce == "single":
+    potential_areas = r"single_pot_area.shp"
+else:
+    raise FileExistsError("Non existente Reduce Variante")
+
+
 hausumringe = r"hausumringe.shp"
 wege = r"strassen_und_wege.shp"
 

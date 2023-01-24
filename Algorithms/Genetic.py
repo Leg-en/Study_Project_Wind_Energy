@@ -18,17 +18,16 @@ from pymoo.visualization.scatter import Scatter
 import matplotlib.pyplot as plt
 import random
 import dill
-from pymoo.termination.max_gen import MaximumGenerationTermination
+from pymoo.termination import get_termination
 
 # from pymoo.termination import get_termination
 
-RUN_NAME = "Test"
-reduced = True  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
-RUN_LOCAL = True
-POOL_SIZE = 8
+RUN_NAME = "genetic_100m_2k_iter"
+reduced = False  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
+RUN_LOCAL = False
+POOL_SIZE = 34
 SMART_REPAIR = True
-max_base_generations = 100
-max_add_generations = 2 #Ist jeweils 100 generationen zusätzlich
+max_base_generations = 2000
 strompreis = 0.10
 cell_size = 100
 
@@ -274,28 +273,13 @@ def main():
         logging.info("Starte Minimierung")
         # termination = get_termination("time", timeString)
         # termination = get_termination("n_gen", 100)
-        max_base_generations = 100
+        termination = get_termination("time", 603000)
         res = minimize(problem,
                        algorithm,
-                       ('n_gen', max_base_generations),
+                       termination,
                        seed=1,
                        verbose=True,
                        save_history=True)
-        logging.info("First Minimization done")
-        save_state = 0
-        for gen in range(max_add_generations):
-            logging.info(f"{gen} Iteration of minimization done")
-            max_base_generations += 100
-            algorithm.termination = MaximumGenerationTermination(max_base_generations)
-            res = minimize(problem,
-                           algorithm,
-                           seed=1,
-                           verbose=True,
-                           save_history=True)
-            with open(os.path.join(save_path, f"res{save_state%2}.dill"), "wb") as file:
-                dill.dump(algorithm, file)
-            save_state += 1
-
 
         logging.info("Minimierung Abgeschlossen")
 

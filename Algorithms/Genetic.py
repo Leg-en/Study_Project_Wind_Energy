@@ -26,8 +26,8 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("RUN_NAME", help="Name des Programms", type=str)
 parser.add_argument("reduced", help="Entweder full,reduced, single", type=str)
-parser.add_argument("RUN_LOCAL", default=True, action='store_false',
-                    help="Bestimmt ob auf Palma oder lokal gerechnet wird", type=bool)
+parser.add_argument("RUN_LOCAL",
+                    help="Bestimmt ob auf Palma oder lokal gerechnet wird", type=str)
 parser.add_argument("POOL_SIZE", help="Bestimmt die anzahl der prozesse", type=int)
 parser.add_argument("REPAIR",
                     help="Bestimmt welcher repair mechanismus benutzt wird. Entweder simple, random oder smart_repair",
@@ -41,7 +41,7 @@ parser.add_argument("--max_time", help="Bestimmt die anzahl sekunden die die opt
 
 args = parser.parse_args()
 
-print(args)
+
 
 RUN_NAME = args.RUN_NAME
 reduced = args.reduced  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
@@ -51,6 +51,11 @@ REPAIR = args.REPAIR
 strompreis = args.strompreis
 cell_size = args.cell_size
 USER = args.USER
+
+if RUN_LOCAL.lower() == "false":
+    RUN_LOCAL = False
+else:
+    RUN_LOCAL = True
 
 if args.max_time and args.max_base_generations:
     raise NotImplemented()

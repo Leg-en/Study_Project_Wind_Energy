@@ -20,16 +20,18 @@ import random
 import dill
 from pymoo.termination import get_termination
 
-
 import argparse
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument("RUN_NAME", help="Name des Programms", type=str)
 parser.add_argument("reduced", help="Entweder full,reduced, single", type=str)
-parser.add_argument("RUN_LOCAL", help="Bestimmt ob auf Palma oder lokal gerechnet wird", type=bool)
+parser.add_argument("RUN_LOCAL", default=True, action='store_false',
+                    help="Bestimmt ob auf Palma oder lokal gerechnet wird", type=bool)
 parser.add_argument("POOL_SIZE", help="Bestimmt die anzahl der prozesse", type=int)
-parser.add_argument("REPAIR", help="Bestimmt welcher repair mechanismus benutzt wird. Entweder simple, random oder smart_repair", type=str)
+parser.add_argument("REPAIR",
+                    help="Bestimmt welcher repair mechanismus benutzt wird. Entweder simple, random oder smart_repair",
+                    type=str)
 parser.add_argument("strompreis", help="Bestimmt den strompreis", type=float)
 parser.add_argument("cell_size", help="Bestimmt die cell size", type=str)
 parser.add_argument("USER", help="Bestimmt den user", type=str)
@@ -39,8 +41,7 @@ parser.add_argument("--max_time", help="Bestimmt die anzahl sekunden die die opt
 
 args = parser.parse_args()
 
-
-
+print(args)
 
 RUN_NAME = args.RUN_NAME
 reduced = args.reduced  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
@@ -58,7 +59,6 @@ elif args.max_time:
 elif args.max_base_generations:
     termination = get_termination("n_gen", args.max_base_generations)
 
-
 if USER == "Emily":
     if RUN_LOCAL:
         base_data_path = r"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data"
@@ -74,10 +74,7 @@ if USER == "Josefina":
         base_data_path = r""
         base_save_path = r""
 
-
-
 WKA_data_path = os.path.join(base_data_path, "base_information_enercon_reformatted.json")
-
 
 if reduced == "reduced":
     points_path = os.path.join(base_data_path, f"points_{cell_size}_reduced.npy")
@@ -85,7 +82,6 @@ elif reduced == "full":
     points_path = os.path.join(base_data_path, f"points_{cell_size}.npy")
 elif reduced == "single":
     points_path = os.path.join(base_data_path, f"points_{cell_size}_single.npy")
-
 
 with open(points_path, "rb") as f:
     points = np.load(f, allow_pickle=True)
@@ -143,6 +139,7 @@ class CustomRepair(Repair):
                                     if len(collisions[subkey]) == 0:
                                         collisions.pop(subkey, None)
         return (idx, row)
+
     def random_repair(self, item):
         '''
         Identical to repair_mp besides the randomized choice of the the element that should be removed.
@@ -160,7 +157,7 @@ class CustomRepair(Repair):
             WKA2_type = WKAs[WKA2[0]]
             d = WKA1[1].distance(WKA2[1])
             if 3 * WKA1_type["rotor_diameter_in_meter"] > d or 3 * WKA2_type["rotor_diameter_in_meter"] > d:
-                row[combination[random.choice([0,1])]] = False
+                row[combination[random.choice([0, 1])]] = False
         return (idx, row)
 
     def repair_mp(self, item):
@@ -281,7 +278,7 @@ def main():
     global pool
     save_path = os.path.join(base_save_path, f"saves_{RUN_NAME}")
     os.mkdir(save_path)
-    logging.basicConfig(filename=os.path.join(save_path, RUN_NAME+".log"),
+    logging.basicConfig(filename=os.path.join(save_path, RUN_NAME + ".log"),
                         level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     logging.info(f"Arguments given: {args}")
 

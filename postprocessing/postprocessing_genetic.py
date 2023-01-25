@@ -5,7 +5,7 @@ from pymoo.core.repair import Repair
 import pickle
 
 cell_size = 50
-reduced = False
+reduced = 'full' # could be full, complete, single
 USER = 'Josefina'
 if USER == 'Emily':
     save_path = r"C:\workspace\Study_Project_Wind_Energy\data\results\test"
@@ -167,13 +167,24 @@ if USER == 'Emily':
     with open(r"C:\workspace\Study_Project_Wind_Energy\Results\ga_complete_5WKA_50m\result_ga_50m.pkl", "rb") as file:
         result = pickle.load(file)
 else:
-    with open(r"C:/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/Algorithms/result_data/result_ga_50m.pkl", "rb") as file:
+    with open(r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/Algorithms/result_data/result_ga_50m.pkl", "rb") as file:
         result = pickle.load(file)
 
-if reduced:
-    points_path = fr"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data\points_{cell_size}_reduced.npy"
+if USER == 'Emily':
+    # TODO: Pfade anpassen
+    if reduced == 'reduced':
+        points_path = fr"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data\points_{cell_size}_reduced.npy"
+    elif reduced == 'full':
+        points_path = fr"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data\points_{cell_size}.npy"
+    elif reduced == 'single':
+        points_path = fr"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data\points_{cell_size}_single.npy"
 else:
-    points_path = fr"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data\points_{cell_size}.npy"
+    if reduced == 'reduced':
+        points_path = fr"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_{cell_size}_reduced.npy"
+    elif reduced == 'full':
+        points_path = fr"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_{cell_size}.npy"
+    elif reduced == 'single':
+        points_path = fr"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/data/points_{cell_size}_single.npy"
 
 
 with open(points_path, "rb") as f:

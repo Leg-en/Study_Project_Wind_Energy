@@ -6,7 +6,12 @@ import pickle
 
 cell_size = 50
 reduced = False
-save_path=r"C:\workspace\Study_Project_Wind_Energy\data\results\test"
+USER = 'Josefina'
+if USER == 'Emily':
+    save_path = r"C:\workspace\Study_Project_Wind_Energy\data\results\test"
+else:
+    save_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/Algorithms/result_data/test"
+
 
 class CustomRepair(Repair):
 
@@ -158,8 +163,12 @@ class WindEnergySiteSelectionProblem(Problem):
         out["G"] = np.asarray([constraints_np])
 
 
-with open(r"C:\workspace\Study_Project_Wind_Energy\Results\ga_complete_5WKA_50m\result_ga_50m.pkl", "rb") as file:
-    result = pickle.load(file)
+if USER == 'Emily':
+    with open(r"C:\workspace\Study_Project_Wind_Energy\Results\ga_complete_5WKA_50m\result_ga_50m.pkl", "rb") as file:
+        result = pickle.load(file)
+else:
+    with open(r"C:/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/Algorithms/result_data/result_ga_50m.pkl", "rb") as file:
+        result = pickle.load(file)
 
 if reduced:
     points_path = fr"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data\points_{cell_size}_reduced.npy"

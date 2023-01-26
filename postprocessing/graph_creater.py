@@ -27,27 +27,30 @@ for i in range(np_fitness.shape[0]):
         d["Fitness"].append(np_fitness[i, j])
 
 df = pd.DataFrame.from_dict(d)
+df["Fitness"] = df["Fitness"] * -1
 df2 = df.copy(deep=True)
 
-df["Fitness"] = df["Fitness"] * -1
+
 df["std"] = df["Fitness"].rolling(rolling_factor).std()
 df["avg"] = df["Fitness"].rolling(rolling_factor).mean()
 
 df2_ = df2.groupby("Generations")
+
 min = df2_.min()
-min["Fitness"] = min["Fitness"] * -1
 min["std"] = min["Fitness"].rolling(rolling_factor).std()
 min["avg"] = min["Fitness"].rolling(rolling_factor).mean()
 
 max = df2_.max()
-max["Fitness"] = max["Fitness"] * -1
 max["std"] = max["Fitness"].rolling(rolling_factor).std()
 max["avg"] = max["Fitness"].rolling(rolling_factor).mean()
 
 mean = df2_.mean()
-mean["Fitness"] = mean["Fitness"] * -1
+#mean2 = mean.copy(deep=True)
+mean = pd.concat([mean, df2_.quantile([0.25,0.75]).unstack()], axis=1)
 mean["std"] = mean["Fitness"].rolling(rolling_factor).std()
 mean["avg"] = mean["Fitness"].rolling(rolling_factor).mean()
+
+#f = pd.concat([mean2, df2_.quantile([0.25,0.75]).unstack()], axis=1)
 
 fig = go.Figure([
     #    go.Scatter(
@@ -82,7 +85,7 @@ fig = go.Figure([
     go.Scatter(
         name='Upper Bound',
         x=mean.index,
-        y=mean["avg"] + mean['std'],
+        y=mean[('Fitness', 0.75)],
         mode='lines',
         marker=dict(color="#444"),
         line=dict(width=0),
@@ -90,8 +93,8 @@ fig = go.Figure([
     ),
     go.Scatter(
         name='Lower Bound',
-        x=min.index,
-        y=mean["avg"] - mean['std'],
+        x=mean.index,
+        y=mean[('Fitness', 0.25)],
         marker=dict(color="#444"),
         line=dict(width=0),
         mode='lines',

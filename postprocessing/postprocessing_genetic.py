@@ -5,12 +5,12 @@ from pymoo.core.repair import Repair
 import dill as pickle
 
 cell_size = 50
-reduced = 'full' # could be full, complete, single
+reduced = 'single' # could be full, complete, single
 USER = 'Josefina'
 if USER == 'Emily':
     save_path = r"C:\workspace\Study_Project_Wind_Energy\data\results\test"
 else:
-    save_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/Algorithms/result_data/test"
+    save_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/Algorithms/result_data/saves_single_50m"
 
 
 class CustomRepair(Repair):
@@ -167,7 +167,7 @@ if USER == 'Emily':
     with open(r"C:\workspace\Study_Project_Wind_Energy\Results\ga_complete_5WKA_50m\result_ga_50m.pkl", "rb") as file:
         result = pickle.load(file)
 else:
-    with open(r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/Algorithms/result_data/result_ga_50m.pkl", "rb") as file:
+    with open(r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/Algorithms/result_data/saves_single_50m/res.dill", "rb") as file:
         result = pickle.load(file)
 
 if USER == 'Emily':

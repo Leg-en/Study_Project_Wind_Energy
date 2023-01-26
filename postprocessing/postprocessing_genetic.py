@@ -2,7 +2,7 @@ import geopandas as gpd
 import numpy as np
 from pymoo.core.problem import Problem
 from pymoo.core.repair import Repair
-import pickle
+import dill as pickle
 
 cell_size = 50
 reduced = 'full' # could be full, complete, single

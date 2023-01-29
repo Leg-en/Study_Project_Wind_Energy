@@ -10,9 +10,9 @@ import json
 from tqdm import tqdm
 from glob import glob
 
-
+#Single 15 Single 50 Full 100
 # Hier entsprechend eigene Pfade (/Variablen) Setzen
-cell_size = 50
+cell_size = 15
 WKA_data_path = r"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data\base_information_enercon_reformatted.json"
 
 reduce = "single" #either full, reduced, single
@@ -119,7 +119,7 @@ for WKA in tqdm(WKA_data["turbines"]):
 
     flurstuecke_wege_hauser_erased_path_shapefile = s_path + r"\flurstuecke_wege_hauser_erased"
     # Exportieren in shapefile um die koordinaten auszulesen
-    conversion.ExportFeatures(flurstuecke_wege_erased_path, flurstuecke_wege_hauser_erased_path_shapefile, '',
+    conversion.ExportFeatures(flurstuecke_wege_hauser_erased_path, flurstuecke_wege_hauser_erased_path_shapefile, '',
                               "NOT_USE_ALIAS", None, None)
 
     sf = shapefile.Reader(flurstuecke_wege_hauser_erased_path_shapefile)
@@ -142,7 +142,7 @@ for WKA in tqdm(WKA_data["turbines"]):
                              oppositeCorner, labels, templateExtent, geometryType)
 
     intersection_points = s_path_gdb + r"\inter_points"
-    analysis.PairwiseClip(fishnet_path + "_label", flurstuecke_wege_erased_path,
+    analysis.PairwiseClip(fishnet_path + "_label", flurstuecke_wege_hauser_erased_path,
                           intersection_points,
                           None)
 

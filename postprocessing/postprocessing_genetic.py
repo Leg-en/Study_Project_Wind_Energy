@@ -4,13 +4,14 @@ from pymoo.core.problem import Problem
 from pymoo.core.repair import Repair
 import dill as pickle
 
-cell_size = 50
+cell_size = 15
 reduced = 'single' # could be full, complete, single
+folder = r"saves_Single_15m_100Iter_Sec"
 USER = 'Josefina'
 if USER == 'Emily':
     save_path = r"C:\workspace\Study_Project_Wind_Energy\data\results\test"
 else:
-    save_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/Algorithms/result_data/saves_single_50m"
+    save_path = r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/saves/" + folder # Algorithms/result_data/" + folder
 
 
 class CustomRepair(Repair):
@@ -167,7 +168,7 @@ if USER == 'Emily':
     with open(r"C:\workspace\Study_Project_Wind_Energy\Results\ga_complete_5WKA_50m\result_ga_50m.pkl", "rb") as file:
         result = pickle.load(file)
 else:
-    with open(r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/Algorithms/result_data/saves_single_50m/res.dill", "rb") as file:
+    with open(r"/Users/josefinabalzer/Desktop/WS22_23/Study_Project/Study_Project_Wind_Energy/saves/" + folder + "/res.dill", "rb") as file: # result_data/" + folder + "/res.dill", "rb") as file:
         result = pickle.load(file)
 
 if USER == 'Emily':

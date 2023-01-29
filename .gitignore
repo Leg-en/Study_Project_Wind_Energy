@@ -4,3 +4,8 @@
 /Results/
 /Algorithms/*.log
 /Algorithms/result_data
+/Algorithms/source_data
+/Algorithms/submit_job
+/Algorithms/Geometrien
+saves
+spec-file.txt

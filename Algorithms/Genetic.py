@@ -76,8 +76,8 @@ if USER == "Josefina":
         base_data_path = r""
         base_save_path = r""
     if not RUN_LOCAL:
-        base_data_path = r""
-        base_save_path = r""
+        base_data_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/Algorithms/source_data"
+        base_save_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/saves"
 
 WKA_data_path = os.path.join(base_data_path, "base_information_enercon_reformatted.json")
 

@@ -19,6 +19,8 @@ import matplotlib.pyplot as plt
 import random
 import dill
 from pymoo.termination import get_termination
+from pymoo.termination.robust import RobustTermination
+from pymoo.termination.ftol import MultiObjectiveSpaceTermination
 
 import argparse
 
@@ -38,13 +40,14 @@ parser.add_argument("USER", help="Bestimmt den user", type=str)
 
 parser.add_argument("--max_base_generations", help="Bestimmt die anzahl der generationen", type=int)
 parser.add_argument("--max_time", help="Bestimmt die anzahl sekunden die die optimierung läuft", type=int)
+parser.add_argument("--robust_crit", help="Robustes Terminierungskriterkium", type=float)
 
 args = parser.parse_args()
 
 
 
 RUN_NAME = args.RUN_NAME
-reduced = args.reduced  # Das sind im Worst Case immer noch 40765935 Mögliche Kombinationen mit dem verkleinerten gebiet..
+reduced = args.reduced
 RUN_LOCAL = args.RUN_LOCAL
 POOL_SIZE = args.POOL_SIZE
 REPAIR = args.REPAIR
@@ -57,12 +60,15 @@ if RUN_LOCAL.lower() == "false":
 else:
     RUN_LOCAL = True
 
-if args.max_time and args.max_base_generations:
-    raise NotImplemented()
-elif args.max_time:
+#if args.max_time and args.max_base_generations:
+#    raise NotImplemented()
+if args.max_time:
     termination = get_termination("time", args.max_time)
 elif args.max_base_generations:
     termination = get_termination("n_gen", args.max_base_generations)
+elif args.robust_crit:
+    termination = RobustTermination(
+        MultiObjectiveSpaceTermination(tol=args.robust_crit), period=50)
 
 if USER == "Emily":
     if RUN_LOCAL:

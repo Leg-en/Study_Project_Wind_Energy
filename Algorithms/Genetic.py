@@ -32,7 +32,7 @@ parser.add_argument("RUN_LOCAL",
                     help="Bestimmt ob auf Palma oder lokal gerechnet wird", type=str)
 parser.add_argument("POOL_SIZE", help="Bestimmt die anzahl der prozesse", type=int)
 parser.add_argument("REPAIR",
-                    help="Bestimmt welcher repair mechanismus benutzt wird. Entweder simple, random oder smart_repair",
+                    help="Bestimmt welcher repair mechanismus benutzt wird. Entweder simple, random, smart_repair oder None",
                     type=str)
 parser.add_argument("strompreis", help="Bestimmt den strompreis", type=float)
 parser.add_argument("cell_size", help="Bestimmt die cell size", type=str)
@@ -68,11 +68,11 @@ elif args.max_base_generations:
     termination = get_termination("n_gen", args.max_base_generations)
 elif args.robust_crit:
     termination = RobustTermination(
-        MultiObjectiveSpaceTermination(tol=args.robust_crit), period=50)
+        MultiObjectiveSpaceTermination(tol=args.robust_crit), period=100)
 
 if USER == "Emily":
     if RUN_LOCAL:
-        base_data_path = r"C:\workspace\Study_Project_Wind_Energy\Algorithms\source_data"
+        base_data_path = r"C:\workspace\Study_Project_Wind_Energy\pip install -U scikit-imageAlgorithms\source_data"
         base_save_path = r"C:\workspace\Study_Project_Wind_Energy\Results"
     if not RUN_LOCAL:
         base_data_path = r"/home/m/m_ster15/WindEnergy/source_data"
@@ -302,13 +302,21 @@ def main():
     # Todo: Population Size und Iterationsanzahl passend wählen
     try:
         pool = Pool(POOL_SIZE)
-        algorithm = GA(pop_size=100,
-                       sampling=BinaryRandomSampling(),
-                       crossover=TwoPointCrossover(),
-                       # Evtl uniformcrossover probieren from pymoo.operators.crossover.ux import UniformCrossover
-                       mutation=BitflipMutation(),
-                       eliminate_duplicates=True,
-                       repair=CustomRepair())
+        if REPAIR.lower() != "none":
+            algorithm = GA(pop_size=100,
+                           sampling=BinaryRandomSampling(),
+                           crossover=TwoPointCrossover(),
+                           # Evtl uniformcrossover probieren from pymoo.operators.crossover.ux import UniformCrossover
+                           mutation=BitflipMutation(),
+                           eliminate_duplicates=True,
+                           repair=CustomRepair())
+        else:
+            algorithm = GA(pop_size=100,
+                           sampling=BinaryRandomSampling(),
+                           crossover=TwoPointCrossover(),
+                           # Evtl uniformcrossover probieren from pymoo.operators.crossover.ux import UniformCrossover
+                           mutation=BitflipMutation(),
+                           eliminate_duplicates=True)
 
         problem = WindEnergySiteSelectionProblem()
         logging.info("Starte Minimierung")

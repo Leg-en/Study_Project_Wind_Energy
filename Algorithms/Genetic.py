@@ -15,7 +15,6 @@ from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
-import matplotlib.pyplot as plt
 import random
 import dill
 from pymoo.termination import get_termination
@@ -347,9 +346,6 @@ def main():
 
         logging.info("Speichern Abgeschlossen")
 
-        # Pymoo scatter
-        if RUN_LOCAL:
-            Scatter().add(res.F).show()
         pool.close()
         logging.info("Programm Terminiert..")
     except Exception as exc:
@@ -363,19 +359,4 @@ if __name__ == "__main__":
     main()
 
 
-def plot(res):
-    fitness_vals = []
 
-    for iteration in res.history:
-        x = []
-        for item in iteration.pop:
-            x.append(item.F[0])
-        fitness_vals.append(x)
-    np_fitness = np.asarray(fitness_vals)
-
-    # Manual Scotter
-    plot_val = [1, 10, 30, 50]
-    for i in plot_val:
-        plt.scatter(np_fitness[i], np.zeros(len(np_fitness[i])))
-    # plt.scatter(res.F[:, 0], res.F[:, 1])
-    plt.show()

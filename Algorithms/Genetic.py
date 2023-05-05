@@ -21,8 +21,11 @@ import dill
 from pymoo.termination import get_termination
 from pymoo.termination.robust import RobustTermination
 from pymoo.termination.ftol import MultiObjectiveSpaceTermination
-
+from pymoo.termination.default import DefaultSingleObjectiveTermination
 import argparse
+from pymoo.core.termination import Termination
+from custom_termination import customSingleObjectiveTermination
+
 
 parser = argparse.ArgumentParser()
 
@@ -42,9 +45,10 @@ parser.add_argument("--max_base_generations", help="Bestimmt die anzahl der gene
 parser.add_argument("--max_time", help="Bestimmt die anzahl sekunden die die optimierung läuft", type=int)
 parser.add_argument("--robust_crit", help="Robustes Terminierungskriterkium", type=float)
 
+
 args = parser.parse_args()
 
-
+device = "mac"
 
 RUN_NAME = args.RUN_NAME
 reduced = args.reduced
@@ -62,7 +66,10 @@ else:
 
 #if args.max_time and args.max_base_generations:
 #    raise NotImplemented()
-if args.max_time:
+if args.max_time and args.robust_crit:
+    print("New Termination Criterion")
+    termination = customSingleObjectiveTermination(max_time=args.max_time, ftol=args.robust_crit, period=100)
+elif args.max_time:
     termination = get_termination("time", args.max_time)
 elif args.max_base_generations:
     termination = get_termination("n_gen", args.max_base_generations)
@@ -72,8 +79,12 @@ elif args.robust_crit:
 
 if USER == "Emily":
     if RUN_LOCAL:
-        base_data_path = r"C:\workspace\Study_Project_Wind_Energy\pip install -U scikit-imageAlgorithms\source_data"
-        base_save_path = r"C:\workspace\Study_Project_Wind_Energy\Results"
+        if device == "pc":
+            base_data_path = r"C:\workspace\Study_Project_Wind_Energy\pip install -U scikit-imageAlgorithms\source_data"
+            base_save_path = r"C:\workspace\Study_Project_Wind_Energy\Results"
+        elif device == "mac":
+            base_data_path = r"/Users/emily/Library/CloudStorage/OneDrive-UniversitätMünster/Uni/WiSe22 23/StudyProject/processed_data_collection"
+            base_save_path = r"/Users/emily/Desktop/Workspace/Study_Project_Wind_Energy/results"
     if not RUN_LOCAL:
         base_data_path = r"/home/m/m_ster15/WindEnergy/source_data"
         base_save_path = r"/home/m/m_ster15/WindEnergy/saves"
@@ -102,6 +113,8 @@ with open(WKA_data_path, "r") as f:
 WKAs = {}
 for wka in WKA_data["turbines"]:
     WKAs[wka["type"].replace(" ", "_")] = wka
+
+
 
 
 # print("Daten geladen und bereit")

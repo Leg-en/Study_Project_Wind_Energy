@@ -1,11 +1,8 @@
 from pymoo.core.termination import Termination
-from pymoo.termination.cv import ConstraintViolationTermination
-from pymoo.termination.ftol import SingleObjectiveSpaceTermination, MultiObjectiveSpaceTermination
-from pymoo.termination.max_eval import MaximumFunctionCallTermination
-from pymoo.termination.max_gen import MaximumGenerationTermination
+from pymoo.termination.ftol import SingleObjectiveSpaceTermination
+from pymoo.termination.max_time import TimeBasedTermination
 from pymoo.termination.robust import RobustTermination
-from pymoo.termination.xtol import DesignSpaceTermination
-from pymoo.termination import get_termination
+
 
 class DefaultTermination(Termination):
 
@@ -17,10 +14,15 @@ class DefaultTermination(Termination):
 
     def _update(self, algorithm):
         p = [criterion.update(algorithm) for criterion in self.criteria]
+        print(p)
         return max(p)
+
+
 class customSingleObjectiveTermination(DefaultTermination):
 
-    def __init__(self,max_time:int, ftol=1e-6, period=30, **kwargs) -> None:
+    def __init__(self, max_time, ftol=1e-6, period=30, **kwargs) -> None:
+        print(type(max_time))
         f = RobustTermination(SingleObjectiveSpaceTermination(ftol, only_feas=True), period=period)
-        t = get_termination("time", max_time)
-        super().__init__(f,t)
+        t = TimeBasedTermination(max_time)
+        print(t)
+        super().__init__(f, t)

@@ -24,6 +24,9 @@ from pymoo.termination.default import DefaultSingleObjectiveTermination
 import argparse
 from pymoo.core.termination import Termination
 from custom_termination import customSingleObjectiveTermination
+from pymoo.algorithms.soo.nonconvex.pso import PSO
+from pymoo.core.repair import NoRepair
+from pymoo.algorithms.soo.nonconvex.de import DE
 
 parser = argparse.ArgumentParser()
 
@@ -239,16 +242,25 @@ class WindEnergySiteSelectionProblem(Problem):
         out["G"] = np.asarray([constraints_np])
 
 
-def main(points, WKAs, REPAIR):
+def main(points, WKAs, REPAIR, alg, run):
     global pool
     save_path = os.path.join(base_save_path, f"saves_{RUN_NAME}")
-    os.mkdir(save_path)
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+    else:
+        with open(os.path.join(save_path, "sub_configs.json"), "r") as f:
+            sub_configs = json.load(f)
+        if sub_configs == run:
+            return
+        else:
+            raise FileExistsError("Config already exists")
     logging.basicConfig(filename=os.path.join(save_path, RUN_NAME + ".log"),
                         level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     logging.info(f"Arguments given: {args}")
 
     # sys.stderr.write = logging.error
     sys.stdout.write = logging.info
+    logging.info(f"Params: alg_data: {alg}, repair: {REPAIR}, res: {CELL_SIZE} ")
 
     logging.info("Daten geladen und bereit")
     logging.info(f"{points.shape[0]} Punkte werden Prozessiert")
@@ -256,20 +268,30 @@ def main(points, WKAs, REPAIR):
     try:
         pool = Pool(POOL_SIZE)
         if REPAIR.lower() != "none":
-            algorithm = GA(pop_size=100,
+            repair = CustomRepair(points, WKAs, REPAIR)
+        else:
+            repair = NoRepair()
+        if alg["name"] == "Genetic":
+            algorithm = GA(pop_size=alg["pop_size"],
                            sampling=BinaryRandomSampling(),
                            crossover=TwoPointCrossover(),
                            # Evtl uniformcrossover probieren from pymoo.operators.crossover.ux import UniformCrossover
                            mutation=BitflipMutation(),
                            eliminate_duplicates=True,
-                           repair=CustomRepair(points, WKAs, REPAIR))
+                           repair=repair)
+        elif alg["name"] == "PSO":
+            algorithm = PSO(pop_size=alg["pop_size"],
+                            repair=repair,
+                            eliminate_duplicates=True)
+        elif alg["name"] == "DE":
+            algorithm = DE(pop_size=alg["pop_size"],
+                           repair=repair,
+                           variant=alg["variant"],
+                           CR=alg["CR"],
+                           F=alg["F"]
+                           )  # Ich weiß nicht wie ich dich gut mache :(
         else:
-            algorithm = GA(pop_size=100,
-                           sampling=BinaryRandomSampling(),
-                           crossover=TwoPointCrossover(),
-                           # Evtl uniformcrossover probieren from pymoo.operators.crossover.ux import UniformCrossover
-                           mutation=BitflipMutation(),
-                           eliminate_duplicates=True)
+            raise NotImplementedError("Unknown Algorithm")
 
         problem = WindEnergySiteSelectionProblem(points, WKAs, REPAIR)
         logging.info("Starte Minimierung")
@@ -284,6 +306,8 @@ def main(points, WKAs, REPAIR):
 
         with open(os.path.join(save_path, "res.dill"), "wb") as file:
             dill.dump(res, file)
+        with open(os.path.join(save_path, "sub_configs.json"), "w") as file:
+            json.dump(run, file)
 
         logging.info("Speichern Abgeschlossen")
 
@@ -303,46 +327,52 @@ def meta_main():
     global RUN_NAME, REDUCED, RUN_LOCAL, POOL_SIZE, REPAIR, STROMPREIS, CELL_SIZE, USER, termination, base_data_path, base_save_path, points_path, points, WKA_data, WKAs
     with open(args.config_path, "r") as file:
         config = json.load(file)
+    USER = config["global_flags"]["USER"]
+    RUN_LOCAL = config["global_flags"]["RUN_LOCAL"]
+    if USER == "Emily":
+        if RUN_LOCAL:
+            if device == "pc":
+                base_data_path = r"C:\Users\Emily\OneDrive - Universität Münster\Uni\WiSe22 23\StudyProject\processed_data_collection"
+                base_save_path = r"C:\Users\Emily\OneDrive - Universität Münster\Uni\SoSe23\Paper\results"
+            elif device == "mac":
+                base_data_path = r"/Users/emily/Library/CloudStorage/OneDrive-UniversitätMünster/Uni/WiSe22 23/StudyProject/processed_data_collection"
+                base_save_path = r"/Users/emily/Desktop/Workspace/Study_Project_Wind_Energy/results"
+        if not RUN_LOCAL:
+            base_data_path = r"/home/m/m_ster15/WindEnergy/source_data"
+            base_save_path = r"/home/m/m_ster15/WindEnergy/saves"
+    if USER == "Josefina":
+        if RUN_LOCAL:
+            base_data_path = r""
+            base_save_path = r""
+        if not RUN_LOCAL:
+            base_data_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/Algorithms/source_data"
+            base_save_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/saves"
+
+    os.mkdir(os.path.join(base_save_path, config["global_flags"]["config_name"]))
+    base_save_path = os.path.join(base_save_path, config["global_flags"]["config_name"])
+    with open(os.path.join(base_save_path, "config.json"), "w") as file:
+        json.dump(config, file)
     for run in config["runs"]:
         RUN_NAME = run["RUN_NAME"]
         REDUCED = run["REDUCED"]
-        RUN_LOCAL = config["global_flags"]["RUN_LOCAL"]
         POOL_SIZE = config["global_flags"]["pool_size"]
         REPAIR = run["REPAIR"]
         STROMPREIS = run["STROMPREIS"]
         CELL_SIZE = run["CELL_SIZE"]
-        USER = config["global_flags"]["USER"]
         if run["termination"]["time"] and run["termination"]["robust_crit"]:
             termination = customSingleObjectiveTermination(max_time=run["termination"]["time"],
-                                                           ftol=run["termination"]["robust_crit"], period=100)
+                                                           ftol=run["termination"]["robust_crit"], period=1000)
         elif run["termination"]["time"]:
             termination = get_termination("time", run["termination"]["time"])
         elif run["termination"]["robust_crit"]:
             termination = RobustTermination(
-                MultiObjectiveSpaceTermination(tol=run["termination"]["robust_crit"]), period=100)
+                MultiObjectiveSpaceTermination(tol=run["termination"]["robust_crit"]), period=1000)
         elif run["termination"]["max_iter"]:
             termination = get_termination("n_gen", run["termination"]["max_iter"])
         else:
             raise ValueError("No Termination Criterion given")
 
-        if USER == "Emily":
-            if RUN_LOCAL:
-                if device == "pc":
-                    base_data_path = r"C:\Users\Emily\OneDrive - Universität Münster\Uni\WiSe22 23\StudyProject\processed_data_collection"
-                    base_save_path = r"C:\Users\Emily\OneDrive - Universität Münster\Uni\SoSe23\Paper\results"
-                elif device == "mac":
-                    base_data_path = r"/Users/emily/Library/CloudStorage/OneDrive-UniversitätMünster/Uni/WiSe22 23/StudyProject/processed_data_collection"
-                    base_save_path = r"/Users/emily/Desktop/Workspace/Study_Project_Wind_Energy/results"
-            if not RUN_LOCAL:
-                base_data_path = r"/home/m/m_ster15/WindEnergy/source_data"
-                base_save_path = r"/home/m/m_ster15/WindEnergy/saves"
-        if USER == "Josefina":
-            if RUN_LOCAL:
-                base_data_path = r""
-                base_save_path = r""
-            if not RUN_LOCAL:
-                base_data_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/Algorithms/source_data"
-                base_save_path = r"/home/j/jbalzer/Study_Project_Wind_Energy/saves"
+
         WKA_data_path = os.path.join(base_data_path, "base_information_enercon_reformatted.json")
 
         if REDUCED == "reduced":
@@ -360,7 +390,7 @@ def meta_main():
         WKAs = {}
         for wka in WKA_data["turbines"]:
             WKAs[wka["type"].replace(" ", "_")] = wka
-        main(points, WKAs, REPAIR)
+        main(points, WKAs, REPAIR, run["algorithm"], run)
 
 
 if __name__ == "__main__":

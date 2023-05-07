@@ -1,33 +1,143 @@
 {
   "runs": [
     {
-      "RUN_NAME": "run1",
-      "REDUCED": "single",
-      "REPAIR": "smart_repair",
-      "STROMPREIS": 0.1,
-      "CELL_SIZE": 100,
-      "termination": {
-        "time": 30,
-        "robust_crit": 0.1,
-        "max_iter": null
-      }
-    },
-    {
-      "RUN_NAME": "run2",
+      "RUN_NAME": "DE_Test1",
       "REDUCED": "single",
       "REPAIR": "smart_repair",
       "STROMPREIS": 0.1,
       "CELL_SIZE": 100,
       "termination": {
         "time": null,
-        "robust_crit": null,
-        "max_iter": 20
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "DE",
+        "pop_size": 100,
+        "variant": "DE/rand/1/bin",
+        "CR": 0.9,
+        "F": 0.8
+      }
+    },
+    {
+      "RUN_NAME": "DE_Test2",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": null,
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "DE",
+        "pop_size": 100,
+        "variant": "DE/rand/1/bin",
+        "CR": 0.3,
+        "F": 0.8
+      }
+    },
+    {
+      "RUN_NAME": "DE_Test3",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": null,
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "DE",
+        "pop_size": 100,
+        "variant": "DE/rand/1/bin",
+        "CR": 0.9,
+        "F": 0.3
+      }
+    },
+    {
+      "RUN_NAME": "DE_Test4",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": null,
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "DE",
+        "pop_size": 100,
+        "variant": "DE/rand/1/bin",
+        "CR": 0.3,
+        "F": 0.3
+      }
+    },
+    {
+      "RUN_NAME": "DE_Test5",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": null,
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "DE",
+        "pop_size": 100,
+        "variant": "DE/rand/1/bin",
+        "CR": 1.9,
+        "F": 0.8
+      }
+    },
+    {
+      "RUN_NAME": "DE_Test6",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": null,
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "DE",
+        "pop_size": 100,
+        "variant": "DE/rand/1/bin",
+        "CR": 0.9,
+        "F": 1.8
+      }
+    },
+    {
+      "RUN_NAME": "DE_Test7",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": null,
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "DE",
+        "pop_size": 100,
+        "variant": "DE/rand/1/bin",
+        "CR": 1.9,
+        "F": 1.8
       }
     }
   ],
   "global_flags": {
     "USER": "Emily",
     "RUN_LOCAL": true,
-    "pool_size": 10
+    "pool_size": 6,
+    "config_name": "DE_TEST"
   }
 }

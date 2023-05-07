@@ -1,0 +1,41 @@
+{
+  "runs": [
+    {
+      "RUN_NAME": "run1",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": 30,
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "Genetic",
+        "pop_size": 100
+      }
+    },
+    {
+      "RUN_NAME": "run2",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": null,
+        "robust_crit": null,
+        "max_iter": 20
+      },
+      "algorithm": {
+        "name": "PSO",
+        "pop_size": 100
+      }
+    }
+  ],
+  "global_flags": {
+    "USER": "Emily",
+    "RUN_LOCAL": true,
+    "pool_size": 10
+  }
+}

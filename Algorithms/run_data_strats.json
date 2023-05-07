@@ -1,0 +1,105 @@
+{
+  "runs": [
+    {
+      "RUN_NAME": "DE_Rand1",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": null,
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "DE",
+        "pop_size": 100,
+        "variant": "DE/rand/1/bin",
+        "CR": 1.9,
+        "F": 1.8
+      }
+    },
+    {
+      "RUN_NAME": "DE_Best1",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": null,
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "DE",
+        "pop_size": 100,
+        "variant": "DE/best/1/bin",
+        "CR": 1.9,
+        "F": 1.8
+      }
+    },
+    {
+      "RUN_NAME": "DE_Rand2",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": null,
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "DE",
+        "pop_size": 100,
+        "variant": "DE/rand/2/bin",
+        "CR": 1.9,
+        "F": 1.8
+      }
+    },
+    {
+      "RUN_NAME": "DE_best2",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": null,
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "DE",
+        "pop_size": 100,
+        "variant": "DE/best/2/bin",
+        "CR": 1.9,
+        "F": 1.8
+      }
+    },
+    {
+      "RUN_NAME": "DE_CtR1",
+      "REDUCED": "single",
+      "REPAIR": "smart_repair",
+      "STROMPREIS": 0.1,
+      "CELL_SIZE": 100,
+      "termination": {
+        "time": null,
+        "robust_crit": 0.1,
+        "max_iter": null
+      },
+      "algorithm": {
+        "name": "DE",
+        "pop_size": 100,
+        "variant": "DE/current-to-rand/1/bin",
+        "CR": 1.9,
+        "F": 1.8
+      }
+    }
+  ],
+  "global_flags": {
+    "USER": "Emily",
+    "RUN_LOCAL": true,
+    "pool_size": 6,
+    "config_name": "DE_STRAT_COMP"
+  }
+}
